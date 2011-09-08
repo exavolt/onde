@@ -1,0 +1,29 @@
+{
+  "string": "Testo",
+  "number": 56.789,
+  "integer": 98765,
+  "boolean": true,
+  "arrayOfString": [
+    "First",
+    "Second",
+    "Fifth",
+    "Seventh",
+    "Eighth"
+  ],
+  "arrayOfAny": [
+    "Simple string",
+    {
+      "string_prop": "Hula"
+    }
+  ],
+  "arrayOfSpecifiedTypes": [],
+  "objectOfAny": {
+    "string": "Hello!",
+    "number": 123456.789,
+    "int": 9876,
+    "bool": true,
+    "obj": {
+      "hello": "World!"
+    }
+  }
+}

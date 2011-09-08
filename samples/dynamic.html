@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/> 
+    <title>Onde Sample</title>
+    <link rel="stylesheet" href="../src/onde.css" type="text/css"/>
+  </head>
+  <body>
+
+<h1>Onde</h1>
+
+<h2>Schema</h2>
+<form id="launcher-form" action="">
+<p>Schema URL: <input type="text" id="schema-load-input" style="width: 40em" />
+<br/>Data URL: <input type="text" id="schema-load-data-url" style="width: 40em" />
+<br/><button type="submit" id="schema-load-submit">Load</button></p>
+</form>
+
+<h2>Data Input</h2>
+<form id="entry-form" class="onde-form" method="post">
+<div class="main">
+</div>
+<p>
+	<button type="submit" name="submit" value="dump_json">Get JSON</button>
+</p>
+</form>
+
+<script type="application/javascript" src="jquery-1.6.3.min.js"></script>
+<script type="application/javascript" src="../src/onde.js"></script>
+<script type="application/javascript">
+$(document).ready(function () {
+	var jform = new onde.Onde("entry-form");
+	$('#launcher-form').submit(function (evt) {
+		evt.preventDefault();
+		$.getJSON($('#schema-load-input').val(), function (schema) {
+			if ($('#schema-load-data-url').val()) {
+				$.getJSON($('#schema-load-data-url').val(), function (data) {
+					jform.render(schema, data);
+				});
+			} else {
+				jform.render(schema);
+			}
+		});
+		return false;
+	});
+});
+</script>
+
+<h2>Output</h2>
+<pre id="json-output" style="overflow: auto; padding: 8px; border: 1px solid #ccc; border-radius: 3px; background-color: #f3f3f3"></pre>
+
+  </body>
+</html>

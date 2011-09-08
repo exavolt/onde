@@ -1,0 +1,48 @@
+{
+    "description": "Onde test schema",
+    "type": "object",
+    "properties": {
+        "string": {
+            "type": "string"
+        },
+        "multiline": {
+            "type": "string",
+            "format": "multiline"
+        },
+        "number": {
+            "type": "number"
+        },
+        "integer": {
+            "type": "integer"
+        },
+        "boolean": {
+            "type": "boolean"
+        },
+        "arrayOfString": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "arrayOfAny": {
+            "type": "array"
+        },
+        "arrayOfSpecifiedTypes": {
+            "type": "array",
+            "items": [
+                { "type": "string" }, 
+                { "type": "number" },
+                { "type": "boolean" },
+                { "type": "object", "additionalProperties": true },
+                { "type": "array" }
+            ]
+        },
+        "objectOfAny": {
+            "type": "object",
+            "additionalProperties": true,
+            "properties": {}
+        },
+        "anyType": {
+        }
+    }
+}

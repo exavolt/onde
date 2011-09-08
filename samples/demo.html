@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/> 
+    <title>Onde Demo</title>
+    <link rel="stylesheet" href="../src/onde.css" type="text/css"/>
+  </head>
+  <body>
+
+<h1>Onde Demo</h1>
+
+<h2>Data Input</h2>
+<form id="entry-form" class="onde-form" method="post">
+<div class="main">
+</div>
+<p>
+	<button type="submit" name="submit" value="dump_json">Get JSON</button>
+</p>
+</form>
+
+<script type="application/javascript" src="jquery-1.6.3.min.js"></script>
+<script type="application/javascript" src="../src/onde.js"></script>
+<script type="application/javascript">
+$(document).ready(function () {
+	var data = null;
+	$.getJSON("schemas/onde-test.json", function (schema) {
+		$.getJSON("onde-test-data.json", function (data) {
+			var jform = new onde.Onde("entry-form");
+			jform.render(schema, data);
+		});
+	});
+});
+</script>
+
+<h2>Output</h2>
+<pre id="json-output" style="overflow: auto; padding: 8px; border: 1px solid #ccc; border-radius: 3px; background-color: #f3f3f3"></pre>
+
+  </body>
+</html>
