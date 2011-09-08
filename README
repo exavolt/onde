@@ -2,7 +2,7 @@ Onde
 ====
 
 **Onde** is a web front-end library for JSON document editor. Onde uses 
-json-schema as the base to create the form.
+json-schema as the base data to build the form.
 
 **NOTE**: Please note that this project is very far from practically useful. 
 There's so many missing functionalities and features. It has non-conformal 
