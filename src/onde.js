@@ -16,8 +16,13 @@
 //TODO: More treatments to multiline string
 //TODO: Smart multiline (textarea) based on the format (and explicit schema property)
 //TODO: Initially show the edit bars as semi transparent and make it opaque on hover
+//TODO: Options: submit URL, delete URL, ...
+//TODO: More than one level summary
 
 
+/*FIXME: Monkey-patching is not recommended */
+
+// Monkey-patch for browser with no Array.indexOf support
 if (!Array.prototype.indexOf) {
     Array.prototype.indexOf = function(searchElement/*, fromIndex */) {
         "use strict";
@@ -45,7 +50,7 @@ if (!Array.prototype.indexOf) {
         return -1;
     };
 }
-
+// These two are nice things which JS misses so much
 String.prototype._startsWith = function (prefix) {
     return this.lastIndexOf(prefix, 0) === 0;
 };
@@ -85,12 +90,12 @@ onde.Onde = function (formId, schema, documentInst) {
         var fieldId = $(this).attr('data-field-id');
         if (fieldId && !$('#' + fieldId).hasClass('inline')) {
             $('#' + fieldId).slideToggle('fast');
-            if (jQuery.fn.fadeToggle) {
+/*            if (jQuery.fn.fadeToggle) {
                 // jQuery 1.4.4
                 $('#' + fieldId + '-edit-bar').fadeToggle('fast');
-            } else {
+            } else { */
                 $('#' + fieldId + '-edit-bar').slideToggle('fast');
-            }
+/*            } */
             $(this).toggleClass('collapsed');
             //TODO: Display indicator (and/or summary) when collapsed
         }
@@ -128,6 +133,9 @@ onde.Onde = function (formId, schema, documentInst) {
         }
         return false;
     });
+    $('#' + this.formId + ' .placeholder').show();
+    $('#' + this.formId + ' .main').hide();
+    $('#' + this.formId + ' .actions').hide();
 };
 
 onde.Onde.prototype.render = function (schema, data) {
@@ -143,6 +151,9 @@ onde.Onde.prototype.render = function (schema, data) {
     panel.hide();
     this.renderObject(this.documentSchema, panel, this.formId, this.documentInstance);
     panel.fadeIn();
+    
+    $('#' + this.formId + ' .actions').fadeIn();
+    $('#' + this.formId + ' .placeholder').hide();
 //    $('#' + this.formId + ' .main').append('<p><button type="submit" name="submit" value="dump_json">Get JSON</button></p>');
 };
 
@@ -160,7 +171,7 @@ onde.Onde.prototype.renderObject = function (schema, parentNode, namespace, data
         if (schema.primaryProperty && propName == schema.primaryProperty) {
             continue;
         }
-        if (schema.summaryProperties && schema.summaryProperties.indexOf(propName) >= 0) {
+        if (schema.summaryProperties && schema.summaryProperties.indexOf(propName) >= 0 && propName.indexOf('.') < 0) {
             continue;
         }
         sortedKeys.push(propName);
@@ -169,6 +180,9 @@ onde.Onde.prototype.renderObject = function (schema, parentNode, namespace, data
     if (schema.summaryProperties) {
         for (var isp = schema.summaryProperties.length - 1; isp >= 0; --isp) {
             if (schema.primaryProperty && schema.summaryProperties[isp] == schema.primaryProperty) {
+                continue;
+            }
+            if (schema.summaryProperties[isp].indexOf('.') >= 0) {
                 continue;
             }
             sortedKeys.unshift(schema.summaryProperties[isp]);
@@ -466,6 +480,7 @@ onde.Onde.prototype.renderObjectPropertyField = function (namespace, baseId, fie
     labelN.addClass('field-name');
     if ((fieldInfo.type == 'object' && fieldInfo.display != 'inline') || fieldInfo.type == 'array' || (typeof fieldInfo.type == 'string' && fieldInfo.type._startsWith('$ref: '))) {
         labelN.addClass('collapsible');
+        //TODO: Description here
     }
     if (namespace === '' && this.documentSchema.primaryProperty && this.documentSchema.primaryProperty == propName) {
         labelN.append('<strong>' + propName + '*: </strong>');

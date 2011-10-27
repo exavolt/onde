@@ -1,0 +1,15 @@
+{
+    "type": "object",
+    "properties": {
+        "name": { "type": "string", "required": true, 
+            "description": "The name of the package. This must be a unique, lowercase alpha-numeric name without spaces. It may include \".\" or \"_\" or \"-\" characters. It is otherwise opaque." },
+        "description": { "type": "string", "required": true, "format": "multiline", 
+            "description": "A brief description of the package. By convention, the first sentence (up to the first \". \") should be usable as a package title in listings." },
+        "version": { "type": "string", "required": true, "format": "semver", 
+            "description": "Version string conforming to the Semantic Versioning requirements (http://semver.org/)." },
+        "keywords": { "type": "array", "required": true, "items": { "type": "string" }, 
+            "description": "An Array of string keywords to assist users searching for the package in catalogs." },
+        "maintainers": { "type": "array", "required": true, "items": { "type": "object", "properties": { "name": { "type": "string", "required": true }, "email": { "type": "string" }, "web": { "type": "string" } } },
+            "description": "Array of maintainers of the package. Each maintainer is a hash which must have a \"name\" property and may optionally provide \"email\" and \"web\" properties," }
+    }
+}
