@@ -18,6 +18,7 @@
 //TODO: Initially show the edit bars as semi transparent and make it opaque on hover
 //TODO: Options: submit URL, delete URL, ...
 //TODO: More than one level summary
+//TODO: Rich class for items / properties: first and last, even and odd
 
 
 /*FIXME: Monkey-patching is not recommended */
@@ -103,7 +104,17 @@ onde.Onde = function (formId, schema, documentInst) {
     // Field deleter (property and item)
     $('#' + formId + ' .field-delete').live('click', function (evt) {
         evt.preventDefault();
-        $('#' + $(this).attr('data-id')).fadeOut('fast', function () { $(this).remove(); });
+        $('#' + $(this).attr('data-id')).fadeOut('fast', function () {
+            // Change the item's and siblings' classes accordingly
+            //FIXME: This is unstable
+            if ($(this).hasClass('first')) {
+                $(this).next('li.field').addClass('first');
+            }
+            if ($(this).hasClass('last')) {
+                $(this).prev('li.field').addClass('last');
+            }
+            $(this).remove();
+        });
     });
     // Type selector
     $('#' + formId + ' .field-type-select').live('change', function (evt) {
@@ -199,29 +210,41 @@ onde.Onde.prototype.renderObject = function (schema, parentNode, namespace, data
         baseNode.addClass(schema.display);
     }
     baseNode.attr('id', fieldValueId);
+    var rowN = null;
     for (var ik = 0; ik < sortedKeys.length; ik++) {
         var propName = sortedKeys[ik];
         var valueData = null;
         if (data) {
             valueData = data[propName];
         }
-        baseNode.append(this.renderObjectPropertyField(namespace, objectId, 
-            props[propName], propName, valueData));
+        var rowN = this.renderObjectPropertyField(namespace, objectId, 
+            props[propName], propName, valueData);
+        if (ik == 0) {
+            rowN.addClass('first');
+        }
+        baseNode.append(rowN);
     }
     if (schema.additionalProperties) {
         if (schema.additionalProperties === true) {
+            var firstItem = rowN ? false : true;
             //TODO: Only the custom data
             //TODO: Check the type of the value
             for (var dKey in data) {
                 if (sortedKeys.indexOf(dKey) === -1) {
-                    baseNode.append(this.renderObjectPropertyField(namespace, objectId, 
-                        { type: typeof data[dKey], additionalProperties: true, _deletable: true }, dKey, data[dKey]));
+                    rowN = this.renderObjectPropertyField(namespace, objectId, 
+                        { type: typeof data[dKey], additionalProperties: true, _deletable: true }, dKey, data[dKey]);
+                    if (firstItem) {
+                        rowN.addClass('first');
+                        firstItem = false;
+                    }
+                    baseNode.append(rowN);
                 }
             }
         } else {
             //TODO: Get the schema
         }
     }
+    rowN.addClass('last');
     parentNode.append(baseNode);
     if (schema.additionalProperties) {
         var editBar = $('<div class="edit-bar object" id="' + fieldValueId + '-edit-bar"></div>');
@@ -429,6 +452,12 @@ onde.Onde.prototype.renderFieldValue = function (fieldName, fieldInfo, parentNod
                 for (var idat = 0; idat < valueData.length; idat++) {
                     lastIndex++;
                     var chRowN = this.renderListItemField(fieldName, fieldInfo ? fieldInfo.items : null, lastIndex, valueData[idat]);
+                    if (idat == 0) {
+                        chRowN.addClass('first');
+                    }
+                    if (idat == valueData.length - 1) {
+                        chRowN.addClass('last');
+                    }
                     contN.append(chRowN);
                 }
             }
@@ -569,6 +598,12 @@ onde.Onde.prototype.onAddObjectProperty = function (handle) {
         fieldInfo = { type: ftype, _deletable: true };
     }
     var rowN = this.renderObjectPropertyField(namespace, baseId, fieldInfo, propName);
+    var siblings = baseNode.children('li.field'); //NOTE: This may weak
+    if (siblings.length == 0) {
+        rowN.addClass('first');
+    }
+    siblings.removeClass('last');
+    rowN.addClass('last');
     baseNode.append(rowN);
     $('#' + baseId + '-key').val('');
     rowN.hide();
@@ -597,6 +632,12 @@ onde.Onde.prototype.onAddListItem = function (handle) {
         fieldInfo = { type: ftype };
     }
     var rowN = this.renderListItemField(namespace, fieldInfo, lastIndex);
+    var siblings = baseNode.children('li.array-item');
+    if (siblings.length == 0) {
+        rowN.addClass('first');
+    }
+    siblings.removeClass('last');
+    rowN.addClass('last');
     baseNode.append(rowN);
     $('#' + baseId + '-key').val('');
     rowN.hide();
