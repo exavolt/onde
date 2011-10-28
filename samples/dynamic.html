@@ -11,8 +11,8 @@
 
 <h2>Schema</h2>
 <form id="launcher-form" action="">
-<p>Schema URL: <input type="text" id="schema-load-input" value="schemas/onde-test.json" style="width: 40em" />
-<br/>Data URL: <input type="text" id="schema-load-data-url" value="onde-test-data.json" style="width: 40em" />
+<p>Schema URL: <input type="text" id="schema-load-input" style="width: 40em" />
+<br/>Data URL: <input type="text" id="schema-load-data-url" style="width: 40em" />
 <br/><button type="submit" id="schema-load-submit">Load</button></p>
 </form>
 
@@ -28,21 +28,48 @@
 <script type="application/javascript" src="jquery-1.6.3.min.js"></script>
 <script type="application/javascript" src="../src/onde.js"></script>
 <script type="application/javascript">
+function getHashParameterByName(name)
+{
+  name = name.replace(/[\[]/, "\\\[").replace(/[\]]/, "\\\]");
+  var hash = window.location.hash || '#';
+  var regexS = "[\\#&]" + name + "=([^&#]*)";
+  var regex = new RegExp(regexS);
+  var results = regex.exec(hash);
+  if(results == null)
+    return "";
+  else
+    return decodeURIComponent(results[1].replace(/\+/g, " "));
+}
 $(document).ready(function () {
+    
+    var schemaURL = getHashParameterByName('schema');
+    var dataURL = getHashParameterByName('data');
 	var jform = new onde.Onde("entry-form");
-	$('#launcher-form').submit(function (evt) {
-		evt.preventDefault();
-		$.getJSON($('#schema-load-input').val(), function (schema) {
-			if ($('#schema-load-data-url').val()) {
-				$.getJSON($('#schema-load-data-url').val(), function (data) {
+	function loadForm() {
+	    if (!schemaURL) {
+	        alert("No schema URL provided");
+	        return;
+        }
+		$.getJSON(schemaURL, function (schema) {
+			if (dataURL) {
+				$.getJSON(dataURL, function (data) {
 					jform.render(schema, data);
 				});
 			} else {
 				jform.render(schema);
 			}
 		});
+    }
+	$('#launcher-form').submit(function (evt) {
+		evt.preventDefault();
+		schemaURL = $('#schema-load-input').val();
+		dataURL = $('#schema-load-data-url').val();
+		loadForm();
 		return false;
 	});
+	$('#schema-load-input').val(schemaURL);
+	$('#schema-load-data-url').val(dataURL);
+	loadForm();
 });
 </script>
 

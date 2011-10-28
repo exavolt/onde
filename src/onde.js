@@ -19,6 +19,9 @@
 //TODO: Options: submit URL, delete URL, ...
 //TODO: More than one level summary
 //TODO: Rich class for items / properties: first and last, even and odd
+//TODO: Support for measurement format (i.e.: value - unit compound)
+//TODO: Support for combo requirement (e.g.: length + width + height or height + diameter)
+//TODO: Support for compound (a field consisted of smaller obvious fields). For example measurement field consisted of value field and unit field.
 
 
 /*FIXME: Monkey-patching is not recommended */
@@ -265,7 +268,7 @@ onde.Onde.prototype.renderObject = function (schema, parentNode, namespace, data
             typeOptions.append('<option>array</option>');
         }
         inner.append(typeOptions);
-        inner.append('<a href="" class="property-add" data-field-id="' + fieldValueId + '" data-object-namespace="' + namespace + '">Add</a>');
+        inner.append('<a href="" class="field-add property-add" data-field-id="' + fieldValueId + '" data-object-namespace="' + namespace + '">Add</a>');
         editBar.append(inner);
         parentNode.append(editBar);
     }
@@ -433,7 +436,7 @@ onde.Onde.prototype.renderFieldValue = function (fieldName, fieldInfo, parentNod
                 //TODO: Support more object and array
             }
             inner.append(typeOptions);
-            inner.append('<a href="" class="item-add" data-object-namespace="' + fieldName + '" data-field-id="' + fieldValueId + '" data-last-index="' + lastIndex + '">Add</a>');
+            inner.append('<a href="" class="field-add item-add" data-object-namespace="' + fieldName + '" data-field-id="' + fieldValueId + '" data-last-index="' + lastIndex + '">Add</a>');
             editBar.append(inner);
             parentNode.append(editBar);
         } else {
@@ -475,9 +478,9 @@ onde.Onde.prototype.renderFieldValue = function (fieldName, fieldInfo, parentNod
                 typeOptions.append('<option>array</option>');
                 inner.append('Add item: ');
                 inner.append(typeOptions);
-                inner.append('<a href="" class="item-add" data-field-id="' + fieldValueId + '" data-object-namespace="' + fieldName + '" data-last-index="' + lastIndex + '">Add</a>');
+                inner.append('<a href="" class="field-add item-add" data-field-id="' + fieldValueId + '" data-object-namespace="' + fieldName + '" data-last-index="' + lastIndex + '">Add</a>');
             } else {
-                inner.append('<a href="" class="item-add" data-field-id="' + fieldValueId + '" data-object-namespace="' + fieldName + '" data-last-index="' + lastIndex + '" data-object-type="' + itemType + '">+ Add item</a>');
+                inner.append('<a href="" class="field-add item-add" data-field-id="' + fieldValueId + '" data-object-namespace="' + fieldName + '" data-last-index="' + lastIndex + '" data-object-type="' + itemType + '">+ Add item</a>');
             }
             editBar.append(inner);
             parentNode.append(editBar);
@@ -493,6 +496,7 @@ onde.Onde.prototype.renderFieldValue = function (fieldName, fieldInfo, parentNod
 onde.Onde.prototype.renderObjectPropertyField = function (namespace, baseId, fieldInfo, propName, valueData) {
     var fieldName = namespace + this.fieldNamespaceSeparator + propName;
     var fieldValueId = 'fieldvalue-' + this._fieldNameToID(fieldName);
+    var collectionType = false;
     var rowN = $('<li></li>');
     fieldInfo = this._sanitizeFieldInfo(fieldInfo, valueData);
     rowN.addClass('field');
@@ -501,6 +505,7 @@ onde.Onde.prototype.renderObjectPropertyField = function (namespace, baseId, fie
             rowN.addClass('object');
         } else {
             rowN.addClass(fieldInfo.type);
+            collectionType = (fieldInfo.type == 'object' || fieldInfo.type == 'array');
         }
     }
     //rowN.addClass('property');
@@ -511,14 +516,22 @@ onde.Onde.prototype.renderObjectPropertyField = function (namespace, baseId, fie
         labelN.addClass('collapsible');
         //TODO: Description here
     }
+    var labelText = propName;
+    if (fieldInfo.label) {
+        labelText = fieldInfo.label;
+    }
     if (namespace === '' && this.documentSchema.primaryProperty && this.documentSchema.primaryProperty == propName) {
-        labelN.append('<strong>' + propName + '*: </strong>');
+        labelN.append('<strong>' + labelText + '*: </strong>');
     } else {
         if (fieldInfo.required) {
-            labelN.append(propName + '*: ');
+            labelN.append(labelText + '*: ');
         } else {
-            labelN.append(propName + ': ');
+            labelN.append(labelText + ': ');
         }
+    }
+    //TODO: More actions (only if qualified)
+    if (fieldInfo._deletable && collectionType) {
+        labelN.append('<small> <a href="" class="field-delete" data-id="field-' + this._fieldNameToID(fieldName) + '">del</a> <small>');
     }
     rowN.append(labelN);
     if (fieldInfo['$ref']) {
@@ -534,7 +547,7 @@ onde.Onde.prototype.renderObjectPropertyField = function (namespace, baseId, fie
             labelN.attr('data-field-id', fieldValueId);
             rowN.attr('id', 'field-' + this._fieldNameToID(fieldName));
             //TODO: More actions (only if qualified)
-            if (fieldInfo._deletable) {
+            if (fieldInfo._deletable && !collectionType) {
                 rowN.append('<small> <a href="" class="field-delete" data-id="field-' + this._fieldNameToID(fieldName) + '">del</a> <small>');
             }
         }
@@ -546,14 +559,21 @@ onde.Onde.prototype.renderListItemField = function (namespace, fieldInfo, index,
     var itemId = index;
     var fieldName = namespace + '[' + itemId + ']';
     var fieldValueId = 'fieldvalue-' + this._fieldNameToID(fieldName);
+    var collectionType = false;
     var rowN = $('<li></li>');
     fieldInfo = this._sanitizeFieldInfo(fieldInfo, valueData);
     rowN.addClass('field');
-    if (fieldInfo) {
-        rowN.addClass(fieldInfo.type);
+    if (typeof fieldInfo.type == 'string') {
+        if (fieldInfo.type._startsWith('$ref: ')) {
+            rowN.addClass('object');
+        } else {
+            rowN.addClass(fieldInfo.type);
+            collectionType = (fieldInfo.type == 'object' || fieldInfo.type == 'array');
+        }
     }
     rowN.addClass('array-item');
     rowN.attr('id', 'field-' + this._fieldNameToID(fieldName));
+    var deleterShown = false;
     var labelN = null;
     if (fieldInfo.type == 'object' && fieldInfo.display == 'inline') {
     } else {
@@ -566,13 +586,20 @@ onde.Onde.prototype.renderListItemField = function (namespace, fieldInfo, index,
         }
         //labelN.append(idat + ': ');
         labelN.append('&nbsp; ');
+        //TODO: More actions (only if qualified)
+        if (collectionType) {
+            labelN.append('<small> <a href="" class="field-delete" data-id="field-' + this._fieldNameToID(fieldName) + '">del</a> <small>');
+            deleterShown = true;
+        }
         rowN.append(labelN);
     }
     if (labelN) {
         labelN.attr('data-field-id', fieldValueId);
     }
     this.renderFieldValue(fieldName, fieldInfo, rowN, valueData);
-    rowN.append('<small> <a href="" class="field-delete" data-id="field-' + this._fieldNameToID(fieldName) + '">del</a> <small>');
+    if (!deleterShown) {
+        rowN.append('<small> <a href="" class="field-delete" data-id="field-' + this._fieldNameToID(fieldName) + '">del</a> <small>');
+    }
     return rowN;
 };
 
