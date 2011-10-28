@@ -153,9 +153,7 @@ onde.Onde = function (formId, schema, documentInst) {
 };
 
 onde.Onde.prototype.render = function (schema, data) {
-    if (schema) {
-        this.documentSchema = schema;
-    }
+    this.documentSchema = schema || this.documentSchema;
     if (!this.documentSchema) {
         //CHECK: Bail out or freestyle object?
     }
@@ -173,9 +171,7 @@ onde.Onde.prototype.render = function (schema, data) {
 
 
 onde.Onde.prototype.renderObject = function (schema, parentNode, namespace, data) {
-    if (!schema) {
-        schema = { type: "object", additionalProperties: true, _deletable: true };
-    }
+    schema = schema || { type: "object", additionalProperties: true, _deletable: true };
     var props = schema.properties || {};
     var sortedKeys = [];
     for (var propName in props) {
@@ -247,7 +243,9 @@ onde.Onde.prototype.renderObject = function (schema, parentNode, namespace, data
             //TODO: Get the schema
         }
     }
-    rowN.addClass('last');
+    if (rowN) {
+        rowN.addClass('last');
+    }
     parentNode.append(baseNode);
     if (schema.additionalProperties) {
         var editBar = $('<div class="edit-bar object" id="' + fieldValueId + '-edit-bar"></div>');
