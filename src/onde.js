@@ -1,7 +1,8 @@
 
 //TODO: Fix the mess: field value id and field id
 //TODO: Type could be array (!)
-//TODO: Check if the property key already exist
+//TODO: Check if the property name already exist
+//TODO: Remove the limitations for property name (support all kind of character)
 //TODO: Deal with 'any'
 //TODO: More consistent IDs
 //TODO: Boolean value consistency
@@ -265,7 +266,8 @@ onde.Onde.prototype.renderObject = function (schema, parentNode, namespace, data
             typeOptions.append('<option>array</option>');
         }
         inner.append(typeOptions);
-        inner.append('<a href="" class="field-add property-add" data-field-id="' + fieldValueId + '" data-object-namespace="' + namespace + '">Add</a>');
+        //inner.append(' <a href="" class="field-add property-add" data-field-id="' + fieldValueId + '" data-object-namespace="' + namespace + '">Add</a>');
+        inner.append(' <button class="field-add property-add" data-field-id="' + fieldValueId + '" data-object-namespace="' + namespace + '">Add</button>');
         editBar.append(inner);
         parentNode.append(editBar);
     }
@@ -378,7 +380,7 @@ onde.Onde.prototype.renderFieldValue = function (fieldName, fieldInfo, parentNod
                     fieldNode.attr('title', fieldInfo.description);
                 }
                 if ('default' in fieldInfo) {
-                    fieldNode.attr('placeholder', fieldInfo.default);
+                    fieldNode.attr('placeholder', fieldInfo['default']);
                 }
             }
         }
@@ -435,7 +437,7 @@ onde.Onde.prototype.renderFieldValue = function (fieldName, fieldInfo, parentNod
                 //TODO: Support more object and array
             }
             inner.append(typeOptions);
-            inner.append('<a href="" class="field-add item-add" data-object-namespace="' + fieldName + '" data-field-id="' + fieldValueId + '" data-last-index="' + lastIndex + '">Add</a>');
+            inner.append(' <a href="" class="field-add item-add" data-object-namespace="' + fieldName + '" data-field-id="' + fieldValueId + '" data-last-index="' + lastIndex + '">Add</a>');
             editBar.append(inner);
             parentNode.append(editBar);
         } else {
@@ -477,9 +479,10 @@ onde.Onde.prototype.renderFieldValue = function (fieldName, fieldInfo, parentNod
                 typeOptions.append('<option>array</option>');
                 inner.append('Add item: ');
                 inner.append(typeOptions);
-                inner.append('<a href="" class="field-add item-add" data-field-id="' + fieldValueId + '" data-object-namespace="' + fieldName + '" data-last-index="' + lastIndex + '">Add</a>');
+                inner.append(' <a href="" class="field-add item-add" data-field-id="' + fieldValueId + '" data-object-namespace="' + fieldName + '" data-last-index="' + lastIndex + '">Add</a>');
             } else {
-                inner.append('<a href="" class="field-add item-add" data-field-id="' + fieldValueId + '" data-object-namespace="' + fieldName + '" data-last-index="' + lastIndex + '" data-object-type="' + itemType + '">+ Add item</a>');
+                //inner.append('<a href="" class="field-add item-add" data-field-id="' + fieldValueId + '" data-object-namespace="' + fieldName + '" data-last-index="' + lastIndex + '" data-object-type="' + itemType + '">+ Add item</a>');
+                inner.append('<button class="field-add item-add" data-field-id="' + fieldValueId + '" data-object-namespace="' + fieldName + '" data-last-index="' + lastIndex + '" data-object-type="' + itemType + '">+ Add item</button>');
             }
             editBar.append(inner);
             parentNode.append(editBar);
@@ -613,6 +616,9 @@ onde.Onde.prototype.onAddObjectProperty = function (handle) {
     var propName = $('#' + baseId + '-key').val();
     if (!propName) {
         //TODO: Nice [unobstrusive] error message
+        return;
+    }
+    if (!propName.match(/^[a-z_][a-z0-9_]+$/i)) {
         return;
     }
     var namespace = handle.attr('data-object-namespace');
