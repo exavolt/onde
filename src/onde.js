@@ -140,7 +140,7 @@ onde.Onde = function (formId, schema, documentInst) {
         var outData = _inst._buildObject(_inst.documentSchema, _inst.formId, formData);
         if (outData.errorCount) {
             //TODO: Show message (use content) and cancel submit
-            alert("Number of errors: " + outData.errorCount);
+            alert("Error submitting data. Number of errors: " + outData.errorCount);
             console.log(outData);
         } else {
             //TODO: Submit the result
@@ -178,18 +178,23 @@ onde.Onde.prototype.renderObject = function (schema, parentNode, namespace, data
     var props = schema.properties || {};
     var sortedKeys = [];
     for (var propName in props) {
+        // First filter, ignore properties not owned by the schema object
         if (!props.hasOwnProperty(propName)) {
             continue;
         }
+        // Rule out primary property, if any, for now
         if (schema.primaryProperty && propName == schema.primaryProperty) {
             continue;
         }
+        // Ignore properties used as object summary
         if (schema.summaryProperties && schema.summaryProperties.indexOf(propName) >= 0 && propName.indexOf(this.fieldNamespaceSeparator) < 0) {
             continue;
         }
         sortedKeys.push(propName);
     }
+    // Sort the collected property names
     sortedKeys.sort();
+    // Add object summary properties
     if (schema.summaryProperties) {
         for (var isp = schema.summaryProperties.length - 1; isp >= 0; --isp) {
             if (schema.primaryProperty && schema.summaryProperties[isp] == schema.primaryProperty) {
@@ -201,6 +206,7 @@ onde.Onde.prototype.renderObject = function (schema, parentNode, namespace, data
             sortedKeys.unshift(schema.summaryProperties[isp]);
         }
     }
+    // Last property to be collected is the primary, if any.
     if (schema.primaryProperty) {
         sortedKeys.unshift(schema.primaryProperty);
     }
@@ -212,6 +218,7 @@ onde.Onde.prototype.renderObject = function (schema, parentNode, namespace, data
         baseNode.addClass(schema.display);
     }
     baseNode.attr('id', fieldValueId);
+    // Render all the properties defined in the schema
     var rowN = null;
     for (var ik = 0; ik < sortedKeys.length; ik++) {
         var propName = sortedKeys[ik];
@@ -223,12 +230,13 @@ onde.Onde.prototype.renderObject = function (schema, parentNode, namespace, data
         }
         baseNode.append(rowN);
     }
+    // Now check if the object can have additional properties
     if (schema.additionalProperties) {
         if (schema.additionalProperties === true) {
             var firstItem = rowN ? false : true;
-            //TODO: Only the custom data
             //TODO: Check the type of the value
             for (var dKey in data) {
+                // Take only additional items
                 if (sortedKeys.indexOf(dKey) === -1) {
                     rowN = this.renderObjectPropertyField(namespace, objectId, 
                         { type: typeof data[dKey], additionalProperties: true, _deletable: true }, 
@@ -244,10 +252,12 @@ onde.Onde.prototype.renderObject = function (schema, parentNode, namespace, data
             //TODO: Get the schema
         }
     }
+    // Always the last if the object has any property
     if (rowN) {
         rowN.addClass('last');
     }
     parentNode.append(baseNode);
+    // Toolbar if the object can has additional property
     if (schema.additionalProperties) {
         var editBar = $('<div class="edit-bar object" id="' + fieldValueId + '-edit-bar"></div>');
         var inner = $('<small></small>');
@@ -255,7 +265,16 @@ onde.Onde.prototype.renderObject = function (schema, parentNode, namespace, data
         inner.append('<input type="text" id="' + fieldValueId + '-key" placeholder="Property name" /> ');
         var typeOptions = $('<select id="' + fieldValueId + '-type"></select> ');
         if (typeof schema.additionalProperties === 'object') {
-            if ('$ref' in schema.additionalProperties) {
+            if (schema.additionalProperties instanceof Array) {
+                for (var iapt = 0; iapt < schema.additionalProperties.length; ++iapt) {
+                    if (typeof schema.additionalProperties[iapt] == 'string') {
+                        typeOptions.append('<option>' + schema.additionalProperties[iapt] + '</option>');
+                    } else { //FIXME: Confident: object
+                        //var opt = schema.additionalProperties[iapt]['name']; //TODO: get title or name
+                        typeOptions.append('<option>' + schema.additionalProperties[iapt]['type'] + '</option>');
+                    }
+                }
+            } else if ('$ref' in schema.additionalProperties) {
                 typeOptions.append('<option>$ref: ' + schema.additionalProperties['$ref'] + '</option>');
             }
         } else {
@@ -267,7 +286,6 @@ onde.Onde.prototype.renderObject = function (schema, parentNode, namespace, data
             typeOptions.append('<option>array</option>');
         }
         inner.append(typeOptions);
-        //inner.append(' <a href="" class="field-add property-add" data-field-id="' + fieldValueId + '" data-object-namespace="' + namespace + '">Add</a>');
         inner.append(' <button class="field-add property-add" data-field-id="' + fieldValueId + '" data-object-namespace="' + namespace + '">Add</button>');
         editBar.append(inner);
         parentNode.append(editBar);
@@ -438,7 +456,6 @@ onde.Onde.prototype.renderFieldValue = function (fieldName, fieldInfo, parentNod
                 //TODO: Support more object and array
             }
             inner.append(typeOptions);
-            //inner.append(' <a href="" class="field-add item-add" data-object-namespace="' + fieldName + '" data-field-id="' + fieldValueId + '" data-last-index="' + lastIndex + '">Add</a>');
             inner.append(' <button class="field-add item-add" data-object-namespace="' + fieldName + '" data-field-id="' + fieldValueId + '" data-last-index="' + lastIndex + '">Add</button>');
             editBar.append(inner);
             parentNode.append(editBar);
@@ -481,10 +498,8 @@ onde.Onde.prototype.renderFieldValue = function (fieldName, fieldInfo, parentNod
                 typeOptions.append('<option>array</option>');
                 inner.append('Add item: ');
                 inner.append(typeOptions);
-                //inner.append(' <a href="" class="field-add item-add" data-field-id="' + fieldValueId + '" data-object-namespace="' + fieldName + '" data-last-index="' + lastIndex + '">Add</a>');
                 inner.append(' <button class="field-add item-add" data-field-id="' + fieldValueId + '" data-object-namespace="' + fieldName + '" data-last-index="' + lastIndex + '">Add</button>');
             } else {
-                //inner.append('<a href="" class="field-add item-add" data-field-id="' + fieldValueId + '" data-object-namespace="' + fieldName + '" data-last-index="' + lastIndex + '" data-object-type="' + itemType + '">+ Add item</a>');
                 inner.append('<button class="field-add item-add" data-field-id="' + fieldValueId + '" data-object-namespace="' + fieldName + '" data-last-index="' + lastIndex + '" data-object-type="' + itemType + '">+ Add item</button>');
             }
             editBar.append(inner);
