@@ -437,7 +437,8 @@ onde.Onde.prototype.renderFieldValue = function (fieldName, fieldInfo, parentNod
                 //TODO: Support more object and array
             }
             inner.append(typeOptions);
-            inner.append(' <a href="" class="field-add item-add" data-object-namespace="' + fieldName + '" data-field-id="' + fieldValueId + '" data-last-index="' + lastIndex + '">Add</a>');
+            //inner.append(' <a href="" class="field-add item-add" data-object-namespace="' + fieldName + '" data-field-id="' + fieldValueId + '" data-last-index="' + lastIndex + '">Add</a>');
+            inner.append(' <button class="field-add item-add" data-object-namespace="' + fieldName + '" data-field-id="' + fieldValueId + '" data-last-index="' + lastIndex + '">Add</button>');
             editBar.append(inner);
             parentNode.append(editBar);
         } else {
@@ -479,7 +480,8 @@ onde.Onde.prototype.renderFieldValue = function (fieldName, fieldInfo, parentNod
                 typeOptions.append('<option>array</option>');
                 inner.append('Add item: ');
                 inner.append(typeOptions);
-                inner.append(' <a href="" class="field-add item-add" data-field-id="' + fieldValueId + '" data-object-namespace="' + fieldName + '" data-last-index="' + lastIndex + '">Add</a>');
+                //inner.append(' <a href="" class="field-add item-add" data-field-id="' + fieldValueId + '" data-object-namespace="' + fieldName + '" data-last-index="' + lastIndex + '">Add</a>');
+                inner.append(' <button class="field-add item-add" data-field-id="' + fieldValueId + '" data-object-namespace="' + fieldName + '" data-last-index="' + lastIndex + '">Add</button>');
             } else {
                 //inner.append('<a href="" class="field-add item-add" data-field-id="' + fieldValueId + '" data-object-namespace="' + fieldName + '" data-last-index="' + lastIndex + '" data-object-type="' + itemType + '">+ Add item</a>');
                 inner.append('<button class="field-add item-add" data-field-id="' + fieldValueId + '" data-object-namespace="' + fieldName + '" data-last-index="' + lastIndex + '" data-object-type="' + itemType + '">+ Add item</button>');
