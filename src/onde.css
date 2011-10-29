@@ -26,9 +26,22 @@ html, td {
 }
 .onde-form a.field-delete {
 /*    color: #e70000; */
+
+    color: transparent;
+    display: inline-block;
+    overflow: hidden;
+    width: 16px;
+    height: 16px;
+    background-image: url(close.png);
+/*    padding-left: 10px; */
 }
 .onde-form a.field-delete:hover {
-    color: #e70000;
+/*    color: #e70000; */
+    color: transparent;
+    background-position: 32px 0;
+}
+.onde-form a.field-delete:active {
+    background-position: 16px 0;
 }
 .onde-form a.field-add:hover {
     color: #006fff;

@@ -109,6 +109,7 @@ onde.Onde = function (formId, schema, documentInst) {
     // Field deleter (property and item)
     $('#' + formId + ' .field-delete').live('click', function (evt) {
         evt.preventDefault();
+        evt.stopPropagation(); //CHECK: Only if collapsible
         $('#' + $(this).attr('data-id')).fadeOut('fast', function () {
             // Change the item's and siblings' classes accordingly
             //FIXME: This is unstable
@@ -183,7 +184,7 @@ onde.Onde.prototype.renderObject = function (schema, parentNode, namespace, data
         if (schema.primaryProperty && propName == schema.primaryProperty) {
             continue;
         }
-        if (schema.summaryProperties && schema.summaryProperties.indexOf(propName) >= 0 && propName.indexOf('.') < 0) {
+        if (schema.summaryProperties && schema.summaryProperties.indexOf(propName) >= 0 && propName.indexOf(this.fieldNamespaceSeparator) < 0) {
             continue;
         }
         sortedKeys.push(propName);
@@ -194,7 +195,7 @@ onde.Onde.prototype.renderObject = function (schema, parentNode, namespace, data
             if (schema.primaryProperty && schema.summaryProperties[isp] == schema.primaryProperty) {
                 continue;
             }
-            if (schema.summaryProperties[isp].indexOf('.') >= 0) {
+            if (schema.summaryProperties[isp].indexOf(this.fieldNamespaceSeparator) >= 0) {
                 continue;
             }
             sortedKeys.unshift(schema.summaryProperties[isp]);
@@ -533,7 +534,7 @@ onde.Onde.prototype.renderObjectPropertyField = function (namespace, baseId, fie
     var actionMenu = '';
     //TODO: More actions (only if qualified)
     if (fieldInfo._deletable) {
-        actionMenu = '<small> <a href="" class="field-delete" data-id="field-' + this._fieldNameToID(fieldName) + '">del</a> <small>';
+        actionMenu = '<small> <a href="" class="field-delete" data-id="field-' + this._fieldNameToID(fieldName) + '">delete</a> <small>';
     }
     if (collectionType) {
         labelN.append(actionMenu);
@@ -596,7 +597,7 @@ onde.Onde.prototype.renderListItemField = function (namespace, fieldInfo, index,
         labelN.append('&nbsp; ');
         //TODO: More actions (only if qualified)
         if (collectionType) {
-            labelN.append('<small> <a href="" class="field-delete" data-id="field-' + this._fieldNameToID(fieldName) + '">del</a> <small>');
+            labelN.append('<small> <a href="" class="field-delete" data-id="field-' + this._fieldNameToID(fieldName) + '">delete</a> <small>');
             deleterShown = true;
         }
         rowN.append(labelN);
@@ -606,7 +607,7 @@ onde.Onde.prototype.renderListItemField = function (namespace, fieldInfo, index,
     }
     this.renderFieldValue(fieldName, fieldInfo, rowN, valueData);
     if (!deleterShown) {
-        rowN.append('<small> <a href="" class="field-delete" data-id="field-' + this._fieldNameToID(fieldName) + '">del</a> <small>');
+        rowN.append('<small> <a href="" class="field-delete" data-id="field-' + this._fieldNameToID(fieldName) + '">delete</a> <small>');
     }
     return rowN;
 };
@@ -682,7 +683,9 @@ onde.Onde.prototype._generateFieldId = function () {
     return 'f' + parseInt(Math.random() * 1000000);
 };
 onde.Onde.prototype._fieldNameToID = function (fieldName) {
-    var t = fieldName.replace(this.fieldNamespaceSeparatorRegex, '-');
+    // Replace dots with hyphens
+    //TODO: Replace all other invalid characters for HTML element ID.
+    var t = fieldName.replace('.', '-');
     return t.replace(/\[/g, '_').replace(/\]/g, '');
 };
 

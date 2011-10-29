@@ -1,5 +1,6 @@
 {
     "type": "object",
+    "summaryProperties": ["name", "version"],
     "properties": {
         "name": {
             "type": "string",
@@ -73,6 +74,7 @@
             "type": "array",
             "items": {
                 "type": "object",
+                "summaryProperties": ["type", "url"],
                 "properties": {
                     "type": { "type": "string", "required": true },
                     "url": { "type": "string", "required": true },
