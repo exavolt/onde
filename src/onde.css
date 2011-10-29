@@ -36,6 +36,7 @@ html, td {
 }
 .onde-form .field .value textarea.value-input {
     height: 2em;
+    vertical-align: top;
 }
 .onde-form .field.number .value input[type=text].value-input,
 .onde-form .field.integer .value input[type=text].value-input {
@@ -143,6 +144,7 @@ html, td {
     margin-right: 10px;
     color: #999;
     display: inline-block;
+    font-weight: normal;
 }
 .onde-form .inline li {
     display: inline;

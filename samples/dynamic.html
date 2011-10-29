@@ -47,7 +47,6 @@ $(document).ready(function () {
 	var jform = new onde.Onde("entry-form");
 	function loadForm() {
 	    if (!schemaURL) {
-	        alert("No schema URL provided");
 	        return;
         }
 		$.getJSON(schemaURL, function (schema) {
@@ -64,6 +63,10 @@ $(document).ready(function () {
 		evt.preventDefault();
 		schemaURL = $('#schema-load-input').val();
 		dataURL = $('#schema-load-data-url').val();
+	    if (!schemaURL) {
+	        alert("No schema URL provided");
+	        return false;
+        }
 		loadForm();
 		return false;
 	});

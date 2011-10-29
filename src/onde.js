@@ -22,6 +22,7 @@
 //TODO: Support for measurement format (i.e.: value - unit compound)
 //TODO: Support for combo requirement (e.g.: length + width + height or height + diameter)
 //TODO: Support for compound (a field consisted of smaller obvious fields). For example measurement field consisted of value field and unit field.
+//TODO: Enum label (and description)
 
 
 /*FIXME: Monkey-patching is not recommended */
@@ -136,7 +137,7 @@ onde.Onde = function (formId, schema, documentInst) {
         }
         var outData = _inst._buildObject(_inst.documentSchema, _inst.formId, formData);
         if (outData.errorCount) {
-            //TODO: Show message and cancel submit
+            //TODO: Show message (use content) and cancel submit
             alert("Number of errors: " + outData.errorCount);
             console.log(outData);
         } else {
@@ -212,10 +213,7 @@ onde.Onde.prototype.renderObject = function (schema, parentNode, namespace, data
     var rowN = null;
     for (var ik = 0; ik < sortedKeys.length; ik++) {
         var propName = sortedKeys[ik];
-        var valueData = null;
-        if (data) {
-            valueData = data[propName];
-        }
+        var valueData = data ? data[propName] : null;
         var rowN = this.renderObjectPropertyField(namespace, objectId, 
             props[propName], propName, valueData);
         if (ik == 0) {
@@ -231,7 +229,8 @@ onde.Onde.prototype.renderObject = function (schema, parentNode, namespace, data
             for (var dKey in data) {
                 if (sortedKeys.indexOf(dKey) === -1) {
                     rowN = this.renderObjectPropertyField(namespace, objectId, 
-                        { type: typeof data[dKey], additionalProperties: true, _deletable: true }, dKey, data[dKey]);
+                        { type: typeof data[dKey], additionalProperties: true, _deletable: true }, 
+                        dKey, data[dKey]);
                     if (firstItem) {
                         rowN.addClass('first');
                         firstItem = false;
@@ -280,6 +279,7 @@ onde.Onde.prototype.renderEnumField = function (fieldName, fieldInfo, valueData)
     if (fieldInfo && fieldInfo.enum) {
         var optn = null;
         fieldNode = $('<select id="fieldvalue-' + this._fieldNameToID(fieldName) + '" name="' + fieldName + '"></select>');
+        fieldNode.append('<option value=""></option>');
         for (var iev = 0; iev < fieldInfo.enum.length; iev++) {
             //TODO: Select the value
             optn = $('<option>' + fieldInfo.enum[iev] + '</option>');
@@ -294,9 +294,7 @@ onde.Onde.prototype.renderEnumField = function (fieldName, fieldInfo, valueData)
 
 onde.Onde.prototype._sanitizeFieldInfo = function (fieldInfo, valueData) {
     if ((!fieldInfo || !fieldInfo.type || fieldInfo.type == 'any') && valueData) {
-        if (!fieldInfo) {
-            fieldInfo = {};
-        }
+        fieldInfo = fieldInfo || {};
         fieldInfo.type = typeof valueData;
         if (fieldInfo.type == 'object') {
             if (valueData instanceof Array) {
@@ -348,6 +346,9 @@ onde.Onde.prototype.renderFieldValue = function (fieldName, fieldInfo, parentNod
             if (fieldInfo && fieldInfo.description) {
                 fieldNode.attr('title', fieldInfo.description);
             }
+            /*if (fieldInfo.format) {
+                fieldNode.addClass(fieldInfo.format);
+            }*/
         }
         fieldNode.attr('data-type', fieldInfo.type);
         tdN.append(fieldNode);
@@ -512,12 +513,9 @@ onde.Onde.prototype.renderObjectPropertyField = function (namespace, baseId, fie
     labelN.addClass('field-name');
     if ((fieldInfo.type == 'object' && fieldInfo.display != 'inline') || fieldInfo.type == 'array' || (typeof fieldInfo.type == 'string' && fieldInfo.type._startsWith('$ref: '))) {
         labelN.addClass('collapsible');
-        //TODO: Description here
     }
-    var labelText = propName;
-    if (fieldInfo.label) {
-        labelText = fieldInfo.label;
-    }
+    // Use the label if provided. Otherwise, use property name.
+    var labelText = fieldInfo.label || propName;
     if (namespace === '' && this.documentSchema.primaryProperty && this.documentSchema.primaryProperty == propName) {
         labelN.append('<strong>' + labelText + '*: </strong>');
     } else {
@@ -527,9 +525,17 @@ onde.Onde.prototype.renderObjectPropertyField = function (namespace, baseId, fie
             labelN.append(labelText + ': ');
         }
     }
+    var actionMenu = '';
     //TODO: More actions (only if qualified)
-    if (fieldInfo._deletable && collectionType) {
-        labelN.append('<small> <a href="" class="field-delete" data-id="field-' + this._fieldNameToID(fieldName) + '">del</a> <small>');
+    if (fieldInfo._deletable) {
+        actionMenu = '<small> <a href="" class="field-delete" data-id="field-' + this._fieldNameToID(fieldName) + '">del</a> <small>';
+    }
+    if (collectionType) {
+        labelN.append(actionMenu);
+    }
+    if (labelN.hasClass('collapsible') && fieldInfo.description) {
+        //TODO: Description here
+        labelN.append(' <small class="description"><em>' + fieldInfo.description + '</small></em>');
     }
     rowN.append(labelN);
     if (fieldInfo['$ref']) {
@@ -544,9 +550,8 @@ onde.Onde.prototype.renderObjectPropertyField = function (namespace, baseId, fie
             this.renderFieldValue(fieldName, fieldInfo, rowN, valueData);
             labelN.attr('data-field-id', fieldValueId);
             rowN.attr('id', 'field-' + this._fieldNameToID(fieldName));
-            //TODO: More actions (only if qualified)
-            if (fieldInfo._deletable && !collectionType) {
-                rowN.append('<small> <a href="" class="field-delete" data-id="field-' + this._fieldNameToID(fieldName) + '">del</a> <small>');
+            if (!collectionType) {
+                rowN.append(actionMenu);
             }
         }
     }
@@ -603,11 +608,11 @@ onde.Onde.prototype.renderListItemField = function (namespace, fieldInfo, index,
 
 
 onde.Onde.prototype.onAddObjectProperty = function (handle) {
-    //TODO: Focus on the new field
     //TODO: Check if the key already used
     var baseId = handle.attr('data-field-id');
     var propName = $('#' + baseId + '-key').val();
     if (!propName) {
+        //TODO: Nice [unobstrusive] error message
         return;
     }
     var namespace = handle.attr('data-object-namespace');
@@ -616,9 +621,7 @@ onde.Onde.prototype.onAddObjectProperty = function (handle) {
     var fieldInfo = null;
     if (ftype == 'object') {
         //TODO: Get the inner schema (or generic object)
-        if (!fieldInfo) {
-            fieldInfo = { type: ftype, additionalProperties: true, _deletable: true }
-        }
+        fieldInfo = fieldInfo || { type: ftype, additionalProperties: true, _deletable: true };
     } else {
         fieldInfo = { type: ftype, _deletable: true };
     }
@@ -632,27 +635,20 @@ onde.Onde.prototype.onAddObjectProperty = function (handle) {
     baseNode.append(rowN);
     $('#' + baseId + '-key').val('');
     rowN.hide();
-    rowN.fadeIn('fast');
+    rowN.fadeIn('fast', function () { rowN.find('input').first().focus(); });
 };
 
 onde.Onde.prototype.onAddListItem = function (handle) {
-    //TODO: Focus on the new field
     var baseId = handle.attr('data-field-id');
     var lastIndex = parseInt(handle.attr('data-last-index')) + 1;
     handle.attr('data-last-index', lastIndex);
     var namespace = handle.attr('data-object-namespace');
-    var ftype = handle.attr('data-object-type');
-    if (!ftype) {
-        ftype = $('#' + baseId + '-type').val();
-    }
+    var ftype = handle.attr('data-object-type') || $('#' + baseId + '-type').val();
     var baseNode = $('#' + baseId);
     var fieldInfo = null;
     if (ftype == 'object') {
         //TODO: Get the inner schema (or generic object)
-        fieldInfo = this.innerSchemas[namespace];
-        if (!fieldInfo) {
-            fieldInfo = { type: ftype, additionalProperties: true }
-        }
+        fieldInfo = this.innerSchemas[namespace] || { type: ftype, additionalProperties: true };
     } else {
         fieldInfo = { type: ftype };
     }
@@ -666,7 +662,7 @@ onde.Onde.prototype.onAddListItem = function (handle) {
     baseNode.append(rowN);
     $('#' + baseId + '-key').val('');
     rowN.hide();
-    rowN.fadeIn('fast');
+    rowN.fadeIn('fast', function () { rowN.find('input').first().focus(); });
 };
 
 onde.Onde.prototype.onFieldTypeChanged = function (handle) {
@@ -753,6 +749,7 @@ onde.Onde.prototype._buildProperty = function (propName, propInfo, path, formDat
             //if (!valData) {
             //    console.log(fieldName + " " + dataType);
             //}
+            //TODO: Guards
             if (valData) {
                 result.noData = false;
                 if (dataType == 'integer') {
