@@ -64,7 +64,7 @@ html, td {
 /*    font-size: 1.17em; */
 }
 .onde-form .field .value textarea.value-input {
-    height: 2em;
+    height: 2.5em;
     vertical-align: top;
 }
 .onde-form .field.number .value input[type=text].value-input,

@@ -28,3 +28,37 @@ Quick Start
 - On the schema url field, enter `schemas/onde-test.json`.
 - Push the `Load` button.
 
+
+Schema
+------
+
+Strict separation between properties which describe it as object property and 
+properties specific to type.
+
+Properties which define property
+
+- `required`
+- `title`
+- `description`
+- `default`
+
+`object` specific properties
+
+- `properties`
+- `additionalProperties` could have array as the value which defines the types 
+  allowed to be used as the additional properties.
+
+`array` specific properties
+
+- `items`
+
+`type` could be string, object which gives more details about the type, or 
+array contains type values.
+
+- `label` human-friendly string which will be displayed to replace property name
+
+Object specific properties
+
+- `name` string which defines the name (to be displayed to represent the object as type)
+- `propertyTypes` an array consists of the types allowed as object's properties
+

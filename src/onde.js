@@ -1,4 +1,6 @@
 
+//BUG: Can't delete additional properties
+//TODO: Support for readonly
 //TODO: Fix the mess: field value id and field id
 //TODO: Type could be array (!)
 //TODO: Check if the property name already exist
@@ -23,7 +25,10 @@
 //TODO: Support for measurement format (i.e.: value - unit compound)
 //TODO: Support for combo requirement (e.g.: length + width + height or height + diameter)
 //TODO: Support for compound (a field consisted of smaller obvious fields). For example measurement field consisted of value field and unit field.
+//TODO: Support for more solid compound: URL or href is defined as field but could be break up to parts.
 //TODO: Enum label (and description)
+//TODO: Allow to replace wordings (e.g.: "Add property:")
+//TODO: Use description as fallback of title (element's title should be only taken from title)
 
 
 /*FIXME: Monkey-patching is not recommended */
@@ -110,6 +115,7 @@ onde.Onde = function (formId, schema, documentInst) {
     $('#' + formId + ' .field-delete').live('click', function (evt) {
         evt.preventDefault();
         evt.stopPropagation(); //CHECK: Only if collapsible
+        console.log('#' + $(this).attr('data-id'));
         $('#' + $(this).attr('data-id')).fadeOut('fast', function () {
             // Change the item's and siblings' classes accordingly
             //FIXME: This is unstable
@@ -270,8 +276,12 @@ onde.Onde.prototype.renderObject = function (schema, parentNode, namespace, data
                     if (typeof schema.additionalProperties[iapt] == 'string') {
                         typeOptions.append('<option>' + schema.additionalProperties[iapt] + '</option>');
                     } else { //FIXME: Confident: object
-                        //var opt = schema.additionalProperties[iapt]['name']; //TODO: get title or name
-                        typeOptions.append('<option>' + schema.additionalProperties[iapt]['type'] + '</option>');
+                        //TODO: Store the inner schema
+                        //TODO: Get the name or title
+                        var opt = schema.additionalProperties[iapt]['name'];
+                        opt = opt || schema.additionalProperties[iapt]['title'];
+                        opt = opt || schema.additionalProperties[iapt]['type']; //TODO: Handle non-string type
+                        typeOptions.append('<option value="' + schema.additionalProperties[iapt]['type'] + '">' + opt + '</option>');
                     }
                 }
             } else if ('$ref' in schema.additionalProperties) {
@@ -333,6 +343,7 @@ onde.Onde.prototype.renderFieldValue = function (fieldName, fieldInfo, parentNod
     //TODO: Allow schema-less render (with multiline string as the fallback)
     var fieldValueId = 'fieldvalue-' + this._fieldNameToID(fieldName);
     fieldInfo = this._sanitizeFieldInfo(fieldInfo, valueData);
+    var fieldDesc = fieldInfo ? fieldInfo.description || fieldInfo.title : null;
     if (!fieldInfo || !fieldInfo.type || fieldInfo.type == 'any') {
         //TODO: Any!
         parentNode.append("Render error: Type is required and must not be 'any'.");
@@ -364,8 +375,8 @@ onde.Onde.prototype.renderFieldValue = function (fieldName, fieldInfo, parentNod
                     fieldNode.val(valueData);
                 }
             }
-            if (fieldInfo && fieldInfo.description) {
-                fieldNode.attr('title', fieldInfo.description);
+            if (fieldInfo && fieldInfo.title) {
+                fieldNode.attr('title', fieldInfo.title);
             }
             /*if (fieldInfo.format) {
                 fieldNode.addClass(fieldInfo.format);
@@ -373,8 +384,8 @@ onde.Onde.prototype.renderFieldValue = function (fieldName, fieldInfo, parentNod
         }
         fieldNode.attr('data-type', fieldInfo.type);
         tdN.append(fieldNode);
-        if (fieldInfo && fieldInfo.description) {
-            tdN.append(' <small class="description"><em>' + fieldInfo.description + '</em></small>');
+        if (fieldDesc) {
+            tdN.append(' <small class="description"><em>' + fieldDesc + '</em></small>');
         }
         parentNode.append(tdN);
     } else if (fieldInfo.type == 'number' || fieldInfo.type == 'integer') {
@@ -395,8 +406,8 @@ onde.Onde.prototype.renderFieldValue = function (fieldName, fieldInfo, parentNod
                 }
             }
             if (fieldInfo) {
-                if (fieldInfo.description) {
-                    fieldNode.attr('title', fieldInfo.description);
+                if (fieldInfo.title) {
+                    fieldNode.attr('title', fieldInfo.title);
                 }
                 if ('default' in fieldInfo) {
                     fieldNode.attr('placeholder', fieldInfo['default']);
@@ -405,8 +416,8 @@ onde.Onde.prototype.renderFieldValue = function (fieldName, fieldInfo, parentNod
         }
         fieldNode.attr('data-type', fieldInfo.type);
         tdN.append(fieldNode);
-        if (fieldInfo && fieldInfo.description) {
-            tdN.append(' <small class="description"><em>' + fieldInfo.description + '</em></small>');
+        if (fieldDesc) {
+            tdN.append(' <small class="description"><em>' + fieldDesc + '</em></small>');
         }
         parentNode.append(tdN);
     } else if (fieldInfo.type == 'boolean') {
@@ -417,15 +428,18 @@ onde.Onde.prototype.renderFieldValue = function (fieldName, fieldInfo, parentNod
         if (valueData === true || valueData === 'true' || valueData === 1 || valueData === '1') {
             fieldNode.attr('checked', 'checked');
         }
-        fieldNode.attr('data-type', fieldInfo.type);
-        tdN.append(fieldNode);
         if (fieldInfo) {
-            if (fieldInfo.description) {
-                tdN.append(' <small class="description"><em>' + fieldInfo.description + '</em></small>');
+            if (fieldInfo.title) {
+                fieldNode.attr('title', fieldInfo.title);
             }
             if ('default' in fieldInfo) {
                 fieldNode.attr('checked', 'checked');
             }
+        }
+        fieldNode.attr('data-type', fieldInfo.type);
+        tdN.append(fieldNode);
+        if (fieldDesc) {
+            tdN.append(' <small class="description"><em>' + fieldDesc + '</em></small>');
         }
         parentNode.append(tdN);
     } else if (fieldInfo.type == 'object') {
@@ -554,9 +568,12 @@ onde.Onde.prototype.renderObjectPropertyField = function (namespace, baseId, fie
     if (collectionType) {
         labelN.append(actionMenu);
     }
-    if (labelN.hasClass('collapsible') && fieldInfo.description) {
+    if (labelN.hasClass('collapsible')) {
         //TODO: Description here
-        labelN.append(' <small class="description"><em>' + fieldInfo.description + '</small></em>');
+        var fieldDesc = fieldInfo.description || fieldInfo.title;
+        if (fieldDesc) {
+            labelN.append(' <small class="description"><em>' + fieldDesc + '</small></em>');
+        }
     }
     rowN.append(labelN);
     if (fieldInfo['$ref']) {
@@ -700,7 +717,7 @@ onde.Onde.prototype._generateFieldId = function () {
 onde.Onde.prototype._fieldNameToID = function (fieldName) {
     // Replace dots with hyphens
     //TODO: Replace all other invalid characters for HTML element ID.
-    var t = fieldName.replace('.', '-');
+    var t = fieldName.replace(/\./g, '-');
     return t.replace(/\[/g, '_').replace(/\]/g, '');
 };
 
