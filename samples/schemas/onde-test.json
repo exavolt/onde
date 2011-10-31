@@ -43,6 +43,7 @@
             "properties": {}
         },
         "anyType": {
-        }
+        },
+        "barePropertyType": "string"
     }
 }

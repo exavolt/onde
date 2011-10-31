@@ -29,6 +29,7 @@
 //TODO: Enum label (and description)
 //TODO: Allow to replace wordings (e.g.: "Add property:")
 //TODO: Use description as fallback of title (element's title should be only taken from title)
+//TODO: Should support something like: { "type": "object", "properties": { "name": "string" } }. With `name` value is string with all default properties.
 
 
 /*FIXME: Monkey-patching is not recommended */
@@ -76,6 +77,7 @@ var onde = (function () {
     };
 })();
 
+onde.primitiveTypes = ['string', 'number', 'integer', 'boolean']; //FIXME: More types
 //onde.simpleTypes = ['string', 'number', 'integer', 'boolean', 'object', 'array', 'null', 'any'];
 
 onde.Onde = function (formId, schema, documentInst) {
@@ -270,18 +272,32 @@ onde.Onde.prototype.renderObject = function (schema, parentNode, namespace, data
         inner.append('Add property: ');
         inner.append('<input type="text" id="' + fieldValueId + '-key" placeholder="Property name" /> ');
         var typeOptions = $('<select id="' + fieldValueId + '-type"></select> ');
-        if (typeof schema.additionalProperties === 'object') {
+        if (typeof schema.additionalProperties == 'object') {
             if (schema.additionalProperties instanceof Array) {
                 for (var iapt = 0; iapt < schema.additionalProperties.length; ++iapt) {
-                    if (typeof schema.additionalProperties[iapt] == 'string') {
-                        typeOptions.append('<option>' + schema.additionalProperties[iapt] + '</option>');
-                    } else { //FIXME: Confident: object
-                        //TODO: Store the inner schema
-                        //TODO: Get the name or title
-                        var opt = schema.additionalProperties[iapt]['name'];
-                        opt = opt || schema.additionalProperties[iapt]['title'];
-                        opt = opt || schema.additionalProperties[iapt]['type']; //TODO: Handle non-string type
-                        typeOptions.append('<option value="' + schema.additionalProperties[iapt]['type'] + '">' + opt + '</option>');
+                    var optInfo = schema.additionalProperties[iapt];
+                    if (typeof optInfo == 'string') {
+                        typeOptions.append('<option>' + optInfo + '</option>');
+                    } else if (typeof optInfo == 'object') {
+                        if (optInfo instanceof Array) {
+                            console.error("Error: array in type list");
+                        } else {
+                        //    console.log(namespace);
+                            //TODO: Store the inner schema
+                            //TODO: Get the name or title
+                            var optTN = optInfo['name'];
+                            this.innerSchemas[namespace + ':' + optTN] = optInfo;
+                            var optType = optInfo['type'];
+                            //TODO: Check the type, it must be string and the value must be primitive
+                            //TODO: Check the schema, it must have name property and the name must be 
+                            // unique among other types in the same list (or one overwrites others).
+                            var optText = optInfo['name'] || optInfo['title'] || optType;
+                            var optN = $('<option value="' + optType + '">' + optText + '</option>');
+                            optN.attr('data-schema-name', optTN);
+                            typeOptions.append(optN);
+                        }
+                    } else {
+                        console.error("Error: invalid type in type list");
                     }
                 }
             } else if ('$ref' in schema.additionalProperties) {
@@ -657,10 +673,19 @@ onde.Onde.prototype.onAddObjectProperty = function (handle) {
         return;
     }
     var namespace = handle.attr('data-object-namespace');
+    var fieldInfo = null;
+    var typeSel = $('#' + baseId + '-type');
+    if (typeSel.length) {
+        typeSel = typeSel[0];
+        if (typeSel.options) {
+            var typeOpt = $(typeSel.options[typeSel.selectedIndex]);
+            fieldInfo = this.innerSchemas[namespace + ':' + typeOpt.attr('data-schema-name')];
+        }
+    }
     var ftype = $('#' + baseId + '-type').val();
     var baseNode = $('#' + baseId);
-    var fieldInfo = null;
     if (ftype == 'object') {
+    //    var typeRef = $('#' + baseId + '-type')
         //TODO: Get the inner schema (or generic object)
         fieldInfo = fieldInfo || { type: ftype, additionalProperties: true, _deletable: true };
     } else {

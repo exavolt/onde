@@ -37,20 +37,51 @@ properties specific to type.
 
 Properties which define property
 
+- `type`
 - `required`
 - `title`
 - `description`
 - `default`
+- `dependecies`
+- `disallow`
+- `id`
+- `extends`
 
-`object` specific properties
+Any type properties
+
+- `enum`
+
+`string` type specific properties
+
+- `pattern`
+- `maxLength`
+- `minLength`
+- `format`
+- `encoding` (?)
+
+`number` type specific properties (also apply to `integer`)
+
+- `minimum`
+- `maximum`
+- `exclusiveMinimum`
+- `exclusiveMaximum`
+- `divisibleBy`
+
+`object` type specific properties
 
 - `properties`
 - `additionalProperties` could have array as the value which defines the types 
   allowed to be used as the additional properties.
+- `patternProperties`
 
-`array` specific properties
+`array` type specific properties
 
 - `items`
+- `additionalItems`
+- `minItems`
+- `maxItems`
+- `uniqueItems`
+
 
 `type` could be string, object which gives more details about the type, or 
 array contains type values.

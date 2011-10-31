@@ -86,7 +86,15 @@
             "required": true,
             "description": "Prerequisite packages on which this package depends in order to install and run.",
             "type": "object",
-            "additionalProperties": ["string", { "type": "object", "name": "depgroups", "additionalProperties": true }]
+            "additionalProperties": [
+                "string",
+                {
+                    "type": "object",
+                    "name": "depgroups",
+                    "additionalProperties": true,
+                    "propertyTypes": ["string"]
+                    }
+                ]
             }
     }
 }
