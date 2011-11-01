@@ -41,14 +41,15 @@
         "contributors": {
             "type": "array",
             "required": true,
-            "items": {
+            "items": [{ "type": "string" }, {
                 "type": "object",
+                "name": "person",
                 "properties": {
                     "name": { "type": "string", "required": true },
                     "email": { "type": "string" },
                     "web": { "type": "string" }
                     }
-                },
+                }],
             "description": "An Array of hashes each containing the details of a contributor. Format is the same as for author. By convention, the first contributor is the original author of the package."
             },
         "bugs": {

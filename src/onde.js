@@ -186,33 +186,41 @@ onde.Onde.prototype.renderObject = function (schema, parentNode, namespace, data
     schema = schema || { type: "object", additionalProperties: true, _deletable: true };
     var props = schema.properties || {};
     var sortedKeys = [];
-    for (var propName in props) {
-        // First filter, ignore properties not owned by the schema object
-        if (!props.hasOwnProperty(propName)) {
-            continue;
-        }
-        // Rule out primary property, if any, for now
-        if (schema.primaryProperty && propName == schema.primaryProperty) {
-            continue;
-        }
-        // Ignore properties used as object summary
-        if (schema.summaryProperties && schema.summaryProperties.indexOf(propName) >= 0 && propName.indexOf(this.fieldNamespaceSeparator) < 0) {
-            continue;
-        }
-        sortedKeys.push(propName);
-    }
-    // Sort the collected property names
-    sortedKeys.sort();
-    // Add object summary properties
-    if (schema.summaryProperties) {
-        for (var isp = schema.summaryProperties.length - 1; isp >= 0; --isp) {
-            if (schema.primaryProperty && schema.summaryProperties[isp] == schema.primaryProperty) {
+    if (false) {
+        for (var propName in props) {
+            // First filter, ignore properties not owned by the schema object
+            if (!props.hasOwnProperty(propName)) {
                 continue;
             }
-            if (schema.summaryProperties[isp].indexOf(this.fieldNamespaceSeparator) >= 0) {
+            // Rule out primary property, if any, for now
+            if (schema.primaryProperty && propName == schema.primaryProperty) {
                 continue;
             }
-            sortedKeys.unshift(schema.summaryProperties[isp]);
+            // Ignore properties used as object summary
+            if (schema.summaryProperties && schema.summaryProperties.indexOf(propName) >= 0 && propName.indexOf(this.fieldNamespaceSeparator) < 0) {
+                continue;
+            }
+            sortedKeys.push(propName);
+        }
+        // Sort the collected property names
+        sortedKeys.sort();
+        // Add object summary properties
+        if (schema.summaryProperties) {
+            for (var isp = schema.summaryProperties.length - 1; isp >= 0; --isp) {
+                if (schema.primaryProperty && schema.summaryProperties[isp] == schema.primaryProperty) {
+                    continue;
+                }
+                if (schema.summaryProperties[isp].indexOf(this.fieldNamespaceSeparator) >= 0) {
+                    continue;
+                }
+                sortedKeys.unshift(schema.summaryProperties[isp]);
+            }
+        }
+    } else {
+        for (var propName in props) {
+            if (props.hasOwnProperty(propName) && (!schema.primaryProperty || propName != schema.primaryProperty)) {
+                sortedKeys.push(propName);
+            }
         }
     }
     // Last property to be collected is the primary, if any.
@@ -513,8 +521,14 @@ onde.Onde.prototype.renderFieldValue = function (fieldName, fieldInfo, parentNod
                     itemType = fieldInfo.items;
                     itemSchema = { type: fieldInfo.items };
                 } else { //TODO: Check that the item is object
-                    itemType = fieldInfo.items.type || 'any'; //TODO: Handle 'any'
-                    itemSchema = fieldInfo.items;
+                    if (typeof fieldInfo.items == 'object') {
+                        if (fieldInfo.items instanceof Array) {
+                            console.log("TODO: list of types");
+                        } else {
+                            itemType = fieldInfo.items.type || 'any'; //TODO: Handle 'any'
+                            itemSchema = fieldInfo.items;
+                        }
+                    }
                 }
             }
             //console.log(fieldInfo);

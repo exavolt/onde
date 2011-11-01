@@ -205,7 +205,7 @@ html, td {
     overflow: hidden;
     width: 16px;
     height: 16px;
-    background-image: url(close.png);
+    background-image: url(kill.png);
 /*    padding-left: 10px; */
 }
 .onde-form button.field-delete:hover {
