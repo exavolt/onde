@@ -30,6 +30,7 @@
 //TODO: Allow to replace wordings (e.g.: "Add property:")
 //TODO: Use description as fallback of title (element's title should be only taken from title)
 //TODO: Should support something like: { "type": "object", "properties": { "name": "string" } }. With `name` value is string with all default properties.
+//TODO: Required: any (any field), combo (set of combination)
 
 
 /*FIXME: Monkey-patching is not recommended */
@@ -266,53 +267,63 @@ onde.Onde.prototype.renderObject = function (schema, parentNode, namespace, data
     }
     parentNode.append(baseNode);
     // Toolbar if the object can has additional property
-    if (schema.additionalProperties) {
+    if ('additionalProperties' in schema) {
         var editBar = $('<div class="edit-bar object" id="' + fieldValueId + '-edit-bar"></div>');
         var inner = $('<small></small>');
         inner.append('Add property: ');
         inner.append('<input type="text" id="' + fieldValueId + '-key" placeholder="Property name" /> ');
-        var typeOptions = $('<select id="' + fieldValueId + '-type"></select> ');
-        if (typeof schema.additionalProperties == 'object') {
-            if (schema.additionalProperties instanceof Array) {
-                for (var iapt = 0; iapt < schema.additionalProperties.length; ++iapt) {
-                    var optInfo = schema.additionalProperties[iapt];
-                    if (typeof optInfo == 'string') {
-                        typeOptions.append('<option>' + optInfo + '</option>');
-                    } else if (typeof optInfo == 'object') {
-                        if (optInfo instanceof Array) {
-                            console.error("Error: array in type list");
-                        } else {
+        if (typeof schema.additionalProperties == 'string') {
+            //TODO: Validate the value
+            inner.append(' <button class="field-add property-add" data-field-id="' + fieldValueId + '" data-object-namespace="' + namespace + '" data-object-type="' + schema.additionalProperties + '">Add</button>');
+        } else if (schema.additionalProperties) {
+            var typeOptions = $('<select id="' + fieldValueId + '-type"></select> ');
+            if (typeof schema.additionalProperties == 'object') {
+                if (schema.additionalProperties instanceof Array) {
+                    for (var iapt = 0; iapt < schema.additionalProperties.length; ++iapt) {
+                        var optInfo = schema.additionalProperties[iapt];
+                        if (typeof optInfo == 'string') {
+                            typeOptions.append('<option>' + optInfo + '</option>');
+                        } else if (typeof optInfo == 'object') {
+                            if (optInfo instanceof Array) {
+                                console.error("Error: array in type list");
+                                continue;
+                            }
                         //    console.log(namespace);
                             //TODO: Store the inner schema
                             //TODO: Get the name or title
                             var optTN = optInfo['name'];
+                            //TODO: More name validation
+                            if (!optTN) {
+                                console.error("Error: invalid schema name");
+                                continue;
+                            }
                             this.innerSchemas[namespace + ':' + optTN] = optInfo;
                             var optType = optInfo['type'];
                             //TODO: Check the type, it must be string and the value must be primitive
                             //TODO: Check the schema, it must have name property and the name must be 
                             // unique among other types in the same list (or one overwrites others).
-                            var optText = optInfo['name'] || optInfo['title'] || optType;
+                            var optText = optTN;/* || optInfo['title'] || optType; */
                             var optN = $('<option value="' + optType + '">' + optText + '</option>');
                             optN.attr('data-schema-name', optTN);
                             typeOptions.append(optN);
+                        } else {
+                            console.error("Error: invalid type in type list");
                         }
-                    } else {
-                        console.error("Error: invalid type in type list");
                     }
+                } else if ('$ref' in schema.additionalProperties) {
+                    typeOptions.append('<option>$ref: ' + schema.additionalProperties['$ref'] + '</option>');
                 }
-            } else if ('$ref' in schema.additionalProperties) {
-                typeOptions.append('<option>$ref: ' + schema.additionalProperties['$ref'] + '</option>');
+            } else {
+                typeOptions.append('<option>string</option>');
+                typeOptions.append('<option>number</option>');
+                typeOptions.append('<option>integer</option>');
+                typeOptions.append('<option>boolean</option>');
+                typeOptions.append('<option>object</option>');
+                typeOptions.append('<option>array</option>');
             }
-        } else {
-            typeOptions.append('<option>string</option>');
-            typeOptions.append('<option>number</option>');
-            typeOptions.append('<option>integer</option>');
-            typeOptions.append('<option>boolean</option>');
-            typeOptions.append('<option>object</option>');
-            typeOptions.append('<option>array</option>');
+            inner.append(typeOptions);
+            inner.append(' <button class="field-add property-add" data-field-id="' + fieldValueId + '" data-object-namespace="' + namespace + '">Add</button>');
         }
-        inner.append(typeOptions);
-        inner.append(' <button class="field-add property-add" data-field-id="' + fieldValueId + '" data-object-namespace="' + namespace + '">Add</button>');
         editBar.append(inner);
         parentNode.append(editBar);
     }
@@ -340,6 +351,9 @@ onde.Onde.prototype.renderEnumField = function (fieldName, fieldInfo, valueData)
 };
 
 onde.Onde.prototype._sanitizeFieldInfo = function (fieldInfo, valueData) {
+    if (typeof fieldInfo == 'string' || fieldInfo instanceof String) {
+        return { type: fieldInfo }; //TODO: Type specific defaults
+    }
     if ((!fieldInfo || !fieldInfo.type || fieldInfo.type == 'any') && valueData) {
         fieldInfo = fieldInfo || {};
         fieldInfo.type = typeof valueData;
@@ -464,6 +478,8 @@ onde.Onde.prototype.renderFieldValue = function (fieldName, fieldInfo, parentNod
         //}
         this.renderObject(fieldInfo, parentNode, fieldName, valueData);
     } else if (fieldInfo.type == 'array') {
+        //TODO: Check if the fieldInfo has the items property
+        //TODO: Support array of types
         if (fieldInfo.items instanceof Array) {
             var contN = $('<ol id="' + fieldValueId + '" start="0"></ol>');
             contN.attr('data-type', 'array');
@@ -491,9 +507,17 @@ onde.Onde.prototype.renderFieldValue = function (fieldName, fieldInfo, parentNod
             parentNode.append(editBar);
         } else {
             var itemType = 'any';
+            var itemSchema = null;
             if (fieldInfo && fieldInfo.items) {
-                itemType = fieldInfo.items.type || 'any'; //TODO: Handle 'any'
+                if (typeof fieldInfo.items == 'string') {
+                    itemType = fieldInfo.items;
+                    itemSchema = { type: fieldInfo.items };
+                } else { //TODO: Check that the item is object
+                    itemType = fieldInfo.items.type || 'any'; //TODO: Handle 'any'
+                    itemSchema = fieldInfo.items;
+                }
             }
+            //console.log(fieldInfo);
             if (itemType == 'object') {
                 // Save the object schema of the item
                 this.innerSchemas[fieldName] = fieldInfo.items;
@@ -504,7 +528,7 @@ onde.Onde.prototype.renderFieldValue = function (fieldName, fieldInfo, parentNod
             if (valueData) {
                 for (var idat = 0; idat < valueData.length; idat++) {
                     lastIndex++;
-                    var chRowN = this.renderListItemField(fieldName, fieldInfo ? fieldInfo.items : null, lastIndex, valueData[idat]);
+                    var chRowN = this.renderListItemField(fieldName, itemSchema, lastIndex, valueData[idat]);
                     if (idat == 0) {
                         chRowN.addClass('first');
                     }
@@ -579,7 +603,7 @@ onde.Onde.prototype.renderObjectPropertyField = function (namespace, baseId, fie
     var actionMenu = '';
     //TODO: More actions (only if qualified)
     if (fieldInfo._deletable) {
-        actionMenu = '<small> <a href="" class="field-delete" data-id="field-' + this._fieldNameToID(fieldName) + '">delete</a> <small>';
+        actionMenu = '<small> <button class="field-delete" data-id="field-' + this._fieldNameToID(fieldName) + '">delete</button> <small>';
     }
     if (collectionType) {
         labelN.append(actionMenu);
@@ -645,7 +669,7 @@ onde.Onde.prototype.renderListItemField = function (namespace, fieldInfo, index,
         labelN.append('&nbsp; ');
         //TODO: More actions (only if qualified)
         if (collectionType) {
-            labelN.append('<small> <a href="" class="field-delete" data-id="field-' + this._fieldNameToID(fieldName) + '">delete</a> <small>');
+            labelN.append('<small> <button class="field-delete" data-id="field-' + this._fieldNameToID(fieldName) + '">delete</button> <small>');
             deleterShown = true;
         }
         rowN.append(labelN);
@@ -655,7 +679,7 @@ onde.Onde.prototype.renderListItemField = function (namespace, fieldInfo, index,
     }
     this.renderFieldValue(fieldName, fieldInfo, rowN, valueData);
     if (!deleterShown) {
-        rowN.append('<small> <a href="" class="field-delete" data-id="field-' + this._fieldNameToID(fieldName) + '">delete</a> <small>');
+        rowN.append('<small> <button class="field-delete" data-id="field-' + this._fieldNameToID(fieldName) + '">delete</button> <small>');
     }
     return rowN;
 };
@@ -677,20 +701,27 @@ onde.Onde.prototype.onAddObjectProperty = function (handle) {
     var typeSel = $('#' + baseId + '-type');
     if (typeSel.length) {
         typeSel = typeSel[0];
+        var schemaName = null;
         if (typeSel.options) {
-            var typeOpt = $(typeSel.options[typeSel.selectedIndex]);
-            fieldInfo = this.innerSchemas[namespace + ':' + typeOpt.attr('data-schema-name')];
+            // The type is from a selection
+            schemaName = $(typeSel.options[typeSel.selectedIndex]).attr('data-schema-name');
+        } else {
+            // Single type
+            schemaName = typeSel.attr('data-schema-name');
         }
+        fieldInfo = this.innerSchemas[schemaName ? namespace + ':' + schemaName : namespace];
     }
-    var ftype = $('#' + baseId + '-type').val();
-    var baseNode = $('#' + baseId);
-    if (ftype == 'object') {
-    //    var typeRef = $('#' + baseId + '-type')
-        //TODO: Get the inner schema (or generic object)
-        fieldInfo = fieldInfo || { type: ftype, additionalProperties: true, _deletable: true };
-    } else {
+    var ftype = handle.attr('data-object-type') || $('#' + baseId + '-type').val();
+    if (!fieldInfo) {
         fieldInfo = { type: ftype, _deletable: true };
+        if (ftype == 'object') {
+            fieldInfo['additionalProperties'] = true;
+        }
+    } else {
+        // Mark as deletable
+        fieldInfo._deletable = true;
     }
+    var baseNode = $('#' + baseId);
     var rowN = this.renderObjectPropertyField(namespace, baseId, fieldInfo, propName);
     var siblings = baseNode.children('li.field'); //NOTE: This may weak
     if (siblings.length == 0) {
@@ -709,15 +740,29 @@ onde.Onde.prototype.onAddListItem = function (handle) {
     var lastIndex = parseInt(handle.attr('data-last-index')) + 1;
     handle.attr('data-last-index', lastIndex);
     var namespace = handle.attr('data-object-namespace');
-    var ftype = handle.attr('data-object-type') || $('#' + baseId + '-type').val();
-    var baseNode = $('#' + baseId);
     var fieldInfo = null;
-    if (ftype == 'object') {
-        //TODO: Get the inner schema (or generic object)
-        fieldInfo = this.innerSchemas[namespace] || { type: ftype, additionalProperties: true };
-    } else {
-        fieldInfo = { type: ftype };
+    var typeSel = $('#' + baseId + '-type');
+    if (typeSel.length) {
+        typeSel = typeSel[0];
+        var schemaName = null;
+        if (typeSel.options) {
+            // The type is from a selection
+            schemaName = $(typeSel.options[typeSel.selectedIndex]).attr('data-schema-name');
+        } else {
+            // Single type
+            schemaName = typeSel.attr('data-schema-name');
+        }
+        fieldInfo = this.innerSchemas[schemaName ? namespace + ':' + schemaName : namespace];
     }
+    var ftype = handle.attr('data-object-type') || $('#' + baseId + '-type').val();
+    if (!fieldInfo) {
+        fieldInfo = this.innerSchemas[namespace] || { type: ftype };
+        if (ftype == 'object') {
+            fieldInfo['additionalProperties'] = true;
+        }
+    }
+    // Array item is always deletable
+    var baseNode = $('#' + baseId);
     var rowN = this.renderListItemField(namespace, fieldInfo, lastIndex);
     var siblings = baseNode.children('li.array-item');
     if (siblings.length == 0) {
@@ -862,6 +907,7 @@ onde.Onde.prototype._buildObject = function (schema, path, formData) {
         }
     }
     if (!schema || schema.additionalProperties) {
+        //TODO: Validate againts schema for additional properties
         var cpath = path + this.fieldNamespaceSeparator;
         for (var fieldName in formData) {
             var dVal = formData[fieldName];

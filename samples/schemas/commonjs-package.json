@@ -52,7 +52,8 @@
             "description": "An Array of hashes each containing the details of a contributor. Format is the same as for author. By convention, the first contributor is the original author of the package."
             },
         "bugs": {
-            "type": "string",
+            "type": "object",
+            "additionalProperties": "string",
             "required": true, 
             "description": "URL for submitting bugs. Can be mailto or http."
             },
@@ -91,8 +92,7 @@
                 {
                     "type": "object",
                     "name": "depgroups",
-                    "additionalProperties": true,
-                    "propertyTypes": ["string"]
+                    "additionalProperties": ["string", { "type": "array", "name": "verlist", "items": "string" }]
                     }
                 ]
             }

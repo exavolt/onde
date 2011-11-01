@@ -42,8 +42,17 @@
             "additionalProperties": true,
             "properties": {}
         },
+        "objectOfSpecifiedAdditionalPropertyTypes": {
+            "type": "object",
+            "additionalProperties": ["number", "string"]
+        },
+        "union": {
+            "type": ["string", "number"]
+        },
+        "bareUnion": ["string", "number"],
         "anyType": {
         },
-        "barePropertyType": "string"
+        "barePropDefString": "string",
+        "barePropDefNum": "number"
     }
 }

@@ -24,28 +24,6 @@ html, td {
 /*    color: #00970b; */
     color: #999;
 }
-.onde-form a.field-delete {
-/*    color: #e70000; */
-
-    color: transparent;
-    display: inline-block;
-    overflow: hidden;
-    width: 16px;
-    height: 16px;
-    background-image: url(close.png);
-/*    padding-left: 10px; */
-}
-.onde-form a.field-delete:hover {
-/*    color: #e70000; */
-    color: transparent;
-    background-position: 32px 0;
-}
-.onde-form a.field-delete:active {
-    background-position: 16px 0;
-}
-.onde-form a.field-add:hover {
-    color: #006fff;
-}
 .onde-form .main {
 /*    background-color: #e0e0e0;
     padding: 1px; */
@@ -199,7 +177,7 @@ html, td {
   font-size: inherit;
   margin-bottom: 0px;
   min-width: 4em;
-  padding: 3px 12px 3px 12px;;
+  padding: 2px 12px 2px 12px;;
 }
 .onde-form button.field-add:hover {
   -webkit-box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.2);
@@ -213,6 +191,30 @@ html, td {
   -moz-box-shadow: inset 0px 1px 3px rgba(0, 0, 0, 0.2);
   background-color: #ebebeb;
   color: #333;
+}
+.onde-form button.field-delete {
+    border: none;
+    outline: none;
+    margin: 0;
+    padding: 0;
+    background-color: #ffffff;
+/*    color: #e70000; */
+
+    color: transparent;
+    display: inline-block;
+    overflow: hidden;
+    width: 16px;
+    height: 16px;
+    background-image: url(close.png);
+/*    padding-left: 10px; */
+}
+.onde-form button.field-delete:hover {
+/*    color: #e70000; */
+    color: transparent;
+    background-position: 32px 0;
+}
+.onde-form button.field-delete:active {
+    background-position: 16px 0;
 }
 
 th, td {

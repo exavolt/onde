@@ -32,6 +32,8 @@ Quick Start
 Schema
 ------
 
+Primitive types: `string`, `number`, `integer`, `boolean`.
+
 Strict separation between properties which describe it as object property and 
 properties specific to type.
 
@@ -82,6 +84,12 @@ Any type properties
 - `maxItems`
 - `uniqueItems`
 
+
+Property of `properties` could have 3 types of value:
+
+- `string` the name of the type. The type must be primitive.
+- `object` defines both the property and the type of property's value.
+- `array` contains all types that could be used as the value of the property.
 
 `type` could be string, object which gives more details about the type, or 
 array contains type values.
