@@ -1,7 +1,6 @@
 
 
 //BUG: Nameless schema
-//BUG: Disable adder for object with no additional properties 
 //TODO: Support for readonly
 //TODO: Fix the mess: field value id and field id
 //TODO: Type could be array (!)
@@ -33,6 +32,7 @@
 //TODO: Use description as fallback of title (element's title should be only taken from title)
 //TODO: Should support something like: { "type": "object", "properties": { "name": "string" } }. With `name` value is string with all default properties.
 //TODO: Required: any (any field), combo (set of combination)
+//TODO: Automatically add first array item if the item type is singular
 
 
 /*FIXME: Monkey-patching is not recommended */
@@ -583,7 +583,6 @@ onde.Onde.prototype.renderFieldValue = function (fieldName, fieldInfo, parentNod
                         //TODO: Check the type, it must be string and the value must be primitive
                         //TODO: Check the schema, it must have name property and the name must be 
                         // unique among other types in the same list (or one overwrites others).
-                        var optText = optName;
                         var optN = $('<option>' + optText + '</option>');
                         optN.attr('value', optType);
                         optN.attr('data-schema-name', optName);
@@ -652,7 +651,7 @@ onde.Onde.prototype.renderObjectPropertyField = function (namespace, baseId, fie
     var actionMenu = '';
     //TODO: More actions (only if qualified)
     if (fieldInfo._deletable) {
-        actionMenu = '<small> <button class="field-delete" data-id="field-' + this._fieldNameToID(fieldName) + '">delete</button> <small>';
+        actionMenu = '<small> <button class="field-delete" data-id="field-' + this._fieldNameToID(fieldName) + '" title="Delete property">delete</button> <small>';
     }
     if (collectionType) {
         labelN.append(actionMenu);
@@ -718,7 +717,7 @@ onde.Onde.prototype.renderListItemField = function (namespace, fieldInfo, index,
         labelN.append('&nbsp; ');
         //TODO: More actions (only if qualified)
         if (collectionType) {
-            labelN.append('<small> <button class="field-delete" data-id="field-' + this._fieldNameToID(fieldName) + '">delete</button> <small>');
+            labelN.append('<small> <button class="field-delete" data-id="field-' + this._fieldNameToID(fieldName) + '" title="Delete item">delete</button> <small>');
             deleterShown = true;
         }
         rowN.append(labelN);
@@ -728,7 +727,7 @@ onde.Onde.prototype.renderListItemField = function (namespace, fieldInfo, index,
     }
     this.renderFieldValue(fieldName, fieldInfo, rowN, valueData);
     if (!deleterShown) {
-        rowN.append('<small> <button class="field-delete" data-id="field-' + this._fieldNameToID(fieldName) + '">delete</button> <small>');
+        rowN.append('<small> <button class="field-delete" data-id="field-' + this._fieldNameToID(fieldName) + '" title="Delete item">delete</button> <small>');
     }
     return rowN;
 };
@@ -746,11 +745,12 @@ onde.Onde.prototype.onAddObjectProperty = function (handle) {
         return;
     }
     var namespace = handle.attr('data-object-namespace');
+    var ftype = handle.attr('data-object-type') || $('#' + baseId + '-type').val();
     var fieldInfo = null;
+    var schemaName = null;
     var typeSel = $('#' + baseId + '-type');
     if (typeSel.length) {
         typeSel = typeSel[0];
-        var schemaName = null;
         if (typeSel.options) {
             // The type is from a selection
             schemaName = $(typeSel.options[typeSel.selectedIndex]).attr('data-schema-name');
@@ -758,14 +758,18 @@ onde.Onde.prototype.onAddObjectProperty = function (handle) {
             // Single type
             schemaName = typeSel.attr('data-schema-name');
         }
-        //TODO!!! FIXME: See function below
-        schemaName = schemaName || handle.attr('data-schema-name');
-        fieldInfo = this.innerSchemas[schemaName ? namespace + ':' + schemaName : namespace];
     }
-    var ftype = handle.attr('data-object-type') || $('#' + baseId + '-type').val();
+    if (!schemaName) {
+        // The last possible place to get the name of the schema
+        schemaName = handle.attr('data-schema-name');
+    }
+    // Get the schema
+    fieldInfo = this.innerSchemas[schemaName ? namespace + ':' + schemaName : namespace];
     if (!fieldInfo) {
+        // No schema found, build it
         fieldInfo = { type: ftype, _deletable: true };
         if (ftype == 'object') {
+            // Special case for object, add additional property
             fieldInfo['additionalProperties'] = true;
         }
     } else {
@@ -791,11 +795,12 @@ onde.Onde.prototype.onAddListItem = function (handle) {
     var lastIndex = parseInt(handle.attr('data-last-index')) + 1;
     handle.attr('data-last-index', lastIndex);
     var namespace = handle.attr('data-object-namespace');
+    var ftype = handle.attr('data-object-type') || $('#' + baseId + '-type').val();
     var fieldInfo = null;
+    var schemaName = null;
     var typeSel = $('#' + baseId + '-type');
     if (typeSel.length) {
         typeSel = typeSel[0];
-        var schemaName = null;
         if (typeSel.options) {
             // The type is from a selection
             schemaName = $(typeSel.options[typeSel.selectedIndex]).attr('data-schema-name');
@@ -803,13 +808,18 @@ onde.Onde.prototype.onAddListItem = function (handle) {
             // Single type
             schemaName = typeSel.attr('data-schema-name');
         }
-        fieldInfo = this.innerSchemas[schemaName ? namespace + ':' + schemaName : namespace];
     }
-    var ftype = handle.attr('data-object-type') || $('#' + baseId + '-type').val();
+    if (!schemaName) {
+        // The last possible place to get the name of the schema
+        schemaName = handle.attr('data-schema-name');
+    }
+    // Get the schema
+    fieldInfo = this.innerSchemas[schemaName ? namespace + ':' + schemaName : namespace];
     if (!fieldInfo) {
-        var schemaName = handle.attr('data-schema-name');
-        fieldInfo = this.innerSchemas[schemaName ? namespace + ':' + schemaName : namespace] || { type: ftype };
+        // No schema found, build it
+        fieldInfo = { type: ftype };
         if (ftype == 'object') {
+            // Special case for object, add additional property
             fieldInfo['additionalProperties'] = true;
         }
     }
