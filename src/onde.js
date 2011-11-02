@@ -1,5 +1,7 @@
 
-//BUG: Can't delete additional properties
+
+//BUG: Nameless schema
+//BUG: Disable adder for object with no additional properties 
 //TODO: Support for readonly
 //TODO: Fix the mess: field value id and field id
 //TODO: Type could be array (!)
@@ -247,7 +249,7 @@ onde.Onde.prototype.renderObject = function (schema, parentNode, namespace, data
         }
         baseNode.append(rowN);
     }
-    // Now check if the object can have additional properties
+    // Now check if the object has additional properties
     if (schema.additionalProperties) {
         if (schema.additionalProperties === true) {
             var firstItem = rowN ? false : true;
@@ -299,20 +301,23 @@ onde.Onde.prototype.renderObject = function (schema, parentNode, namespace, data
                         //    console.log(namespace);
                             //TODO: Store the inner schema
                             //TODO: Get the name or title
-                            var optTN = optInfo['name'];
+                            var optName = optInfo['name'];
+                            var optText = null;
                             //TODO: More name validation
-                            if (!optTN) {
-                                console.error("Error: invalid schema name");
-                                continue;
+                            if (!optName) {
+                                optName = 'schema-' + this._generateFieldId();
+                                optText = optInfo['type']; //TODO: Check if already used
+                            } else {
+                                optText = optName;
                             }
-                            this.innerSchemas[namespace + ':' + optTN] = optInfo;
+                            this.innerSchemas[namespace + ':' + optName] = optInfo;
                             var optType = optInfo['type'];
                             //TODO: Check the type, it must be string and the value must be primitive
                             //TODO: Check the schema, it must have name property and the name must be 
                             // unique among other types in the same list (or one overwrites others).
-                            var optText = optTN;/* || optInfo['title'] || optType; */
-                            var optN = $('<option value="' + optType + '">' + optText + '</option>');
-                            optN.attr('data-schema-name', optTN);
+                            var optN = $('<option>' + optText + '</option>');
+                            optN.attr('value', optType);
+                            optN.attr('data-schema-name', optName);
                             typeOptions.append(optN);
                         } else {
                             console.error("Error: invalid type in type list");
@@ -486,93 +491,123 @@ onde.Onde.prototype.renderFieldValue = function (fieldName, fieldInfo, parentNod
         //}
         this.renderObject(fieldInfo, parentNode, fieldName, valueData);
     } else if (fieldInfo.type == 'array') {
+        //TODO:FIXME:HACK:TEMP: Dummy array item (should make the renderer understands different kind of fieldInfo types)
+        var itemSchema = { "type": "any" };
+        var contN = $('<ol id="' + fieldValueId + '" start="0"></ol>');
+        contN.attr('data-type', 'array');
+        var lastIndex = 0;
+        if (valueData) {
+            for (var idat = 0; idat < valueData.length; idat++) {
+                lastIndex++;
+                var chRowN = this.renderListItemField(fieldName, itemSchema, lastIndex, valueData[idat]);
+                if (idat == 0) {
+                    chRowN.addClass('first');
+                }
+                if (idat == valueData.length - 1) {
+                    chRowN.addClass('last');
+                }
+                contN.append(chRowN);
+            }
+        }
+        parentNode.append(contN);
+        var itemTypes = [];
         //TODO: Check if the fieldInfo has the items property
         //TODO: Support array of types
-        if (fieldInfo.items instanceof Array) {
-            var contN = $('<ol id="' + fieldValueId + '" start="0"></ol>');
-            contN.attr('data-type', 'array');
-            var lastIndex = 0;
-            //TODO: Support type array (render values)
-/*            if (valueData) {
-                for (var idat = 0; idat < valueData.length; idat++) {
-                    lastIndex++;
-                    var chRowN = this.renderListItemField(fieldName, fieldInfo.items, lastIndex, valueData[idat]);
-                    contN.append(chRowN);
+        if ('items' in fieldInfo) {
+            if (typeof fieldInfo.items == 'string') {
+                itemTypes = ['string'];
+            } else if (fieldInfo.items) {
+                if (typeof fieldInfo.items == 'object') {
+                    if (fieldInfo.items instanceof Array) {
+                        itemTypes = fieldInfo.items;
+                    } else {
+                        itemTypes = [fieldInfo.items];
+                    }
                 }
-            } */
-            parentNode.append(contN);
-            var editBar = $('<div class="edit-bar array" id="' + fieldValueId + '-edit-bar"></div>');
-            var inner = $('<small></small>');
-            inner.append('Add item: ');
-            var typeOptions = $('<select id="' + fieldValueId + '-type"></select> ');
-            for (var iati = 0; iati < fieldInfo.items.length; ++iati) {
-                typeOptions.append('<option>' + fieldInfo.items[iati].type + '</option>');
-                //TODO: Support more object and array
             }
-            inner.append(typeOptions);
-            inner.append(' <button class="field-add item-add" data-object-namespace="' + fieldName + '" data-field-id="' + fieldValueId + '" data-last-index="' + lastIndex + '">Add</button>');
-            editBar.append(inner);
-            parentNode.append(editBar);
         } else {
-            var itemType = 'any';
-            var itemSchema = null;
-            if (fieldInfo && fieldInfo.items) {
-                if (typeof fieldInfo.items == 'string') {
-                    itemType = fieldInfo.items;
-                    itemSchema = { type: fieldInfo.items };
-                } else { //TODO: Check that the item is object
-                    if (typeof fieldInfo.items == 'object') {
-                        if (fieldInfo.items instanceof Array) {
-                            console.log("TODO: list of types");
-                        } else {
-                            itemType = fieldInfo.items.type || 'any'; //TODO: Handle 'any'
-                            itemSchema = fieldInfo.items;
+            console.error("TODO: Freestyle if no 'items' provided");
+        }
+        var editBar = $('<div class="edit-bar array" id="' + fieldValueId + '-edit-bar"></div>');
+        var inner = $('<small></small>');
+        inner.append('Add item: ');
+        if (itemTypes.length == 1) {
+            var optInfo = itemTypes[0];
+            if (typeof optInfo == 'string') {
+                //TODO: Validate the value
+                inner.append(' <button class="field-add item-add" data-field-id="' + fieldValueId + '" data-object-namespace="' + fieldName + '" data-object-type="' + optInfo + '" data-last-index="' + lastIndex + '">Add</button>');
+            } else if (typeof optInfo == 'object') {
+                if (optInfo instanceof Array) {
+                    console.error("TODO: Array type is not supported");
+                } else {
+                    var optName = optInfo['name'];
+                    var optText = null;
+                    //TODO: More name validation
+                    if (!optName) {
+                        optName = 'schema-' + this._generateFieldId();
+                        optText = optInfo['type']; //TODO: Check if already used
+                    } else {
+                        optText = optName;
+                    }
+                    this.innerSchemas[fieldName + ':' + optName] = optInfo;
+                    var optType = optInfo['type'];
+                    //TODO: Check the type, it must be string and the value must be primitive
+                    //TODO: Check the schema, it must have name property and the name must be 
+                    // unique among other types in the same list (or one overwrites others).
+                    inner.append(' <button class="field-add item-add" data-field-id="' + fieldValueId + '" data-object-namespace="' + fieldName + '" data-object-type="' + optType + '" data-schema-name="' + optName + '" data-last-index="' + lastIndex + '">Add</button>');
+                }
+            }
+        } else {
+            var typeOptions = $('<select id="' + fieldValueId + '-type"></select> ');
+            if (itemTypes.length) {
+                for (var iapt = 0; iapt < itemTypes.length; ++iapt) {
+                    var optInfo = itemTypes[iapt];
+                    if (typeof optInfo == 'string') {
+                        typeOptions.append('<option>' + optInfo + '</option>');
+                    } else if (typeof optInfo == 'object') {
+                        if (optInfo instanceof Array) {
+                            console.error("Error: array in type list");
+                            continue;
                         }
+                        var optName = optInfo['name'];
+                        var optText = null;
+                        //TODO: More name validation
+                        if (!optName) {
+                            optName = 'schema-' + this._generateFieldId();
+                            optText = optInfo['type']; //TODO: Check if already used
+                        } else {
+                            optText = optName;
+                        }
+                        this.innerSchemas[fieldName + ':' + optName] = optInfo;
+                        var optType = optInfo['type'];
+                        //TODO: Check the type, it must be string and the value must be primitive
+                        //TODO: Check the schema, it must have name property and the name must be 
+                        // unique among other types in the same list (or one overwrites others).
+                        var optText = optName;
+                        var optN = $('<option>' + optText + '</option>');
+                        optN.attr('value', optType);
+                        optN.attr('data-schema-name', optName);
+                        typeOptions.append(optN);
+                    } else {
+                        console.error("Error: invalid type in type list");
                     }
                 }
-            }
-            //console.log(fieldInfo);
-            if (itemType == 'object') {
-                // Save the object schema of the item
-                this.innerSchemas[fieldName] = fieldInfo.items;
-            }
-            var contN = $('<ol id="' + fieldValueId + '" start="0"></ol>');
-            contN.attr('data-type', 'array');
-            var lastIndex = 0;
-            if (valueData) {
-                for (var idat = 0; idat < valueData.length; idat++) {
-                    lastIndex++;
-                    var chRowN = this.renderListItemField(fieldName, itemSchema, lastIndex, valueData[idat]);
-                    if (idat == 0) {
-                        chRowN.addClass('first');
-                    }
-                    if (idat == valueData.length - 1) {
-                        chRowN.addClass('last');
-                    }
-                    contN.append(chRowN);
-                }
-            }
-            parentNode.append(contN);
-            var editBar = $('<div class="edit-bar array" id="' + fieldValueId + '-edit-bar"></div>');
-            var inner = $('<small></small>');
-            if (itemType == 'any') {
-                // Give all primitive types
-                var typeOptions = $('<select id="' + fieldValueId + '-type"></select> ');
+            } else {
+                console.warn("Array has no item type definitions");
+                //TODO: Any type
                 typeOptions.append('<option>string</option>');
                 typeOptions.append('<option>number</option>');
                 typeOptions.append('<option>integer</option>');
                 typeOptions.append('<option>boolean</option>');
                 typeOptions.append('<option>object</option>');
                 typeOptions.append('<option>array</option>');
-                inner.append('Add item: ');
-                inner.append(typeOptions);
-                inner.append(' <button class="field-add item-add" data-field-id="' + fieldValueId + '" data-object-namespace="' + fieldName + '" data-last-index="' + lastIndex + '">Add</button>');
-            } else {
-                inner.append('<button class="field-add item-add" data-field-id="' + fieldValueId + '" data-object-namespace="' + fieldName + '" data-last-index="' + lastIndex + '" data-object-type="' + itemType + '">+ Add item</button>');
             }
-            editBar.append(inner);
-            parentNode.append(editBar);
+            inner.append(typeOptions);
+            inner.append(' <button class="field-add item-add" data-field-id="' + fieldValueId + '" data-object-namespace="' + fieldName + '" data-last-index="' + lastIndex + '">Add</button>');
         }
+        editBar.append(inner);
+        parentNode.append(editBar);
+        return;
     } else if (fieldInfo.type == '$ref: #') { //HACK
         this.renderObject(this.documentSchema, parentNode, fieldName, valueData);
     } else {
@@ -723,6 +758,8 @@ onde.Onde.prototype.onAddObjectProperty = function (handle) {
             // Single type
             schemaName = typeSel.attr('data-schema-name');
         }
+        //TODO!!! FIXME: See function below
+        schemaName = schemaName || handle.attr('data-schema-name');
         fieldInfo = this.innerSchemas[schemaName ? namespace + ':' + schemaName : namespace];
     }
     var ftype = handle.attr('data-object-type') || $('#' + baseId + '-type').val();
@@ -770,12 +807,13 @@ onde.Onde.prototype.onAddListItem = function (handle) {
     }
     var ftype = handle.attr('data-object-type') || $('#' + baseId + '-type').val();
     if (!fieldInfo) {
-        fieldInfo = this.innerSchemas[namespace] || { type: ftype };
+        var schemaName = handle.attr('data-schema-name');
+        fieldInfo = this.innerSchemas[schemaName ? namespace + ':' + schemaName : namespace] || { type: ftype };
         if (ftype == 'object') {
             fieldInfo['additionalProperties'] = true;
         }
     }
-    // Array item is always deletable
+    // Array item is always deletable (?!)
     var baseNode = $('#' + baseId);
     var rowN = this.renderListItemField(namespace, fieldInfo, lastIndex);
     var siblings = baseNode.children('li.array-item');

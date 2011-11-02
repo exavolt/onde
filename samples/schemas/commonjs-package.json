@@ -30,6 +30,7 @@
             "required": true,
             "items": {
                 "type": "object",
+                "name": "person",
                 "properties": {
                     "name": { "type": "string", "required": true },
                     "email": { "type": "string" },
@@ -41,7 +42,7 @@
         "contributors": {
             "type": "array",
             "required": true,
-            "items": [{ "type": "string" }, {
+            "items": ["string", {
                 "type": "object",
                 "name": "person",
                 "properties": {
