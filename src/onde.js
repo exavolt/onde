@@ -249,6 +249,9 @@ onde.Onde.prototype.renderObject = function (schema, parentNode, namespace, data
         }
         baseNode.append(rowN);
     }
+    if (!schema.properties && (!('additionalProperties' in schema) || schema.additionalProperties !== false)) {
+        schema.additionalProperties = true;
+    }
     // Now check if the object has additional properties
     if (schema.additionalProperties) {
         if (schema.additionalProperties === true) {
@@ -288,8 +291,10 @@ onde.Onde.prototype.renderObject = function (schema, parentNode, namespace, data
             } else {
                 propertyTypes = [schema.additionalProperties];
             }
+        } else if (typeof schema.additionalProperties == 'boolean') {
+            // Ignore (any?)
         } else {
-            console.warn("Invalid additional properties type");
+            console.warn("Invalid additional properties type: " + (typeof schema.additionalProperties) + ".");
         }
     }
     // Toolbar if the object can has additional property
@@ -536,7 +541,7 @@ onde.Onde.prototype.renderFieldValue = function (fieldName, fieldInfo, parentNod
                     itemTypes = [fieldInfo.items];
                 }
             } else {
-                console.warn("Invalid items type");
+                console.warn("Invalid items type: " + (typeof fieldInfo.items) + " (" + fieldName + ")");
             }
         }
         var editBar = $('<div class="edit-bar array" id="' + fieldValueId + '-edit-bar"></div>');
@@ -603,7 +608,6 @@ onde.Onde.prototype.renderFieldValue = function (fieldName, fieldInfo, parentNod
                     }
                 }
             } else {
-                console.warn("Array has no item type definitions");
                 //TODO: Any type
                 typeOptions.append('<option>string</option>');
                 typeOptions.append('<option>number</option>');
