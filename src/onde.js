@@ -276,6 +276,22 @@ onde.Onde.prototype.renderObject = function (schema, parentNode, namespace, data
         rowN.addClass('last');
     }
     parentNode.append(baseNode);
+    var propertyTypes = [];
+    // Gather the types available to additional properties
+    if ('additionalProperties' in schema) {
+        if (typeof schema.additionalProperties == 'string') {
+            //TODO: Validate the value
+            propertyTypes = [schema.additionalProperties];
+        } else if (typeof schema.additionalProperties == 'object') {
+            if (schema.additionalProperties instanceof Array) {
+                propertyTypes = schema.additionalProperties;
+            } else {
+                propertyTypes = [schema.additionalProperties];
+            }
+        } else {
+            console.warn("Invalid additional properties type");
+        }
+    }
     // Toolbar if the object can has additional property
     if ('additionalProperties' in schema) {
         var editBar = $('<div class="edit-bar object" id="' + fieldValueId + '-edit-bar"></div>');
@@ -389,16 +405,13 @@ onde.Onde.prototype.renderFieldValue = function (fieldName, fieldInfo, parentNod
     var fieldDesc = fieldInfo ? fieldInfo.description || fieldInfo.title : null;
     if (!fieldInfo || !fieldInfo.type || fieldInfo.type == 'any') {
         //TODO: Any!
-        parentNode.append("Render error: Type is required and must not be 'any'.");
-/*        var typeOptions = $('<select id="' + fieldValueId + '-type"></select> ');
-        typeOptions.addClass("field-type-select");
-        typeOptions.append('<option>string</option>');
-        typeOptions.append('<option>number</option>');
-        typeOptions.append('<option>integer</option>');
-        typeOptions.append('<option>boolean</option>');
-        typeOptions.append('<option>object</option>');
-        typeOptions.append('<option>array</option>');
-        parentNode.append(typeOptions); */
+        if (!fieldInfo) {
+            parentNode.append("InternalError: Missing field information");
+        } else if (!fieldInfo.type) {
+            parentNode.append("InternalError: Missing type property");
+        } else {
+            parentNode.append("InternalError: Type of 'any' is currently not supported");
+        }
     } else if (fieldInfo.type == 'string') {
         // String property
         var tdN = $('<span class="value"></span>');
@@ -511,22 +524,20 @@ onde.Onde.prototype.renderFieldValue = function (fieldName, fieldInfo, parentNod
         }
         parentNode.append(contN);
         var itemTypes = [];
-        //TODO: Check if the fieldInfo has the items property
-        //TODO: Support array of types
+        // Gather the types available to items
         if ('items' in fieldInfo) {
             if (typeof fieldInfo.items == 'string') {
-                itemTypes = ['string'];
-            } else if (fieldInfo.items) {
-                if (typeof fieldInfo.items == 'object') {
-                    if (fieldInfo.items instanceof Array) {
-                        itemTypes = fieldInfo.items;
-                    } else {
-                        itemTypes = [fieldInfo.items];
-                    }
+                //TODO: Validate the value
+                itemTypes = [fieldInfo.items];
+            } else if (typeof fieldInfo.items == 'object') {
+                if (fieldInfo.items instanceof Array) {
+                    itemTypes = fieldInfo.items;
+                } else {
+                    itemTypes = [fieldInfo.items];
                 }
+            } else {
+                console.warn("Invalid items type");
             }
-        } else {
-            console.error("TODO: Freestyle if no 'items' provided");
         }
         var editBar = $('<div class="edit-bar array" id="' + fieldValueId + '-edit-bar"></div>');
         var inner = $('<small></small>');
@@ -610,7 +621,7 @@ onde.Onde.prototype.renderFieldValue = function (fieldName, fieldInfo, parentNod
     } else if (fieldInfo.type == '$ref: #') { //HACK
         this.renderObject(this.documentSchema, parentNode, fieldName, valueData);
     } else {
-        var tdN = $('<span class="value">Unsupported property type: <strong>' + fieldInfo.type + '</strong></span>');
+        var tdN = $('<span class="value">InternalError: Unsupported property type: <tt>' + fieldInfo.type + '</tt></span>');
         parentNode.append(tdN);
     }
 };
@@ -936,7 +947,7 @@ onde.Onde.prototype._buildProperty = function (propName, propInfo, path, formDat
                 } else if (dataType == 'string') {
                     result.data = valData;
                 } else { //TODO: More types
-                    console.log("Unsupported type: " + dataType + " (" + fieldName + ")");
+                    console.warn("Unsupported type: " + dataType + " (" + fieldName + ")");
                     result.errorCount += 1;
                     result.errorData = 'type-error';
                 }
@@ -1025,7 +1036,7 @@ onde.Onde.prototype._buildObject = function (schema, path, formData) {
                         dVal = (dVal == 'on' || dVal == 'true' || dVal == 'checked' || dVal !== 0 || dVal === true);
                     } else if (dataType == 'string') {
                     } else {
-                        console.log("Unsupported type: " + dataType + " (" + fieldName + ")");
+                        console.warn("Unsupported type: " + dataType + " (" + fieldName + ")");
                         dVal = null; //CHECK: Null it?
                         //TODO: Guard
                         result.errorCount += 1;
