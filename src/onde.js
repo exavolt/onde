@@ -303,51 +303,68 @@ onde.Onde.prototype.renderObject = function (schema, parentNode, namespace, data
         var inner = $('<small></small>');
         inner.append('Add property: ');
         inner.append('<input type="text" id="' + fieldValueId + '-key" placeholder="Property name" /> ');
-        if (typeof schema.additionalProperties == 'string') {
-            //TODO: Validate the value
-            inner.append(' <button class="field-add property-add" data-field-id="' + fieldValueId + '" data-object-namespace="' + namespace + '" data-object-type="' + schema.additionalProperties + '">Add</button>');
-        } else if (schema.additionalProperties) {
-            var typeOptions = $('<select id="' + fieldValueId + '-type"></select> ');
-            if (typeof schema.additionalProperties == 'object') {
-                if (schema.additionalProperties instanceof Array) {
-                    for (var iapt = 0; iapt < schema.additionalProperties.length; ++iapt) {
-                        var optInfo = schema.additionalProperties[iapt];
-                        if (typeof optInfo == 'string') {
-                            typeOptions.append('<option>' + optInfo + '</option>');
-                        } else if (typeof optInfo == 'object') {
-                            if (optInfo instanceof Array) {
-                                console.error("Error: array in type list");
-                                continue;
-                            }
-                        //    console.log(namespace);
-                            //TODO: Store the inner schema
-                            //TODO: Get the name or title
-                            var optName = optInfo['name'];
-                            var optText = null;
-                            //TODO: More name validation
-                            if (!optName) {
-                                optName = 'schema-' + this._generateFieldId();
-                                optText = optInfo['type']; //TODO: Check if already used
-                            } else {
-                                optText = optName;
-                            }
-                            this.innerSchemas[namespace + ':' + optName] = optInfo;
-                            var optType = optInfo['type'];
-                            //TODO: Check the type, it must be string and the value must be primitive
-                            //TODO: Check the schema, it must have name property and the name must be 
-                            // unique among other types in the same list (or one overwrites others).
-                            var optN = $('<option>' + optText + '</option>');
-                            optN.attr('value', optType);
-                            optN.attr('data-schema-name', optName);
-                            typeOptions.append(optN);
-                        } else {
-                            console.error("Error: invalid type in type list");
-                        }
+        if (propertyTypes.length == 1) {
+            var optInfo = propertyTypes[0];
+            if (typeof optInfo == 'string') {
+                //TODO: Validate the value
+                inner.append(' <button class="field-add property-add" data-field-id="' + fieldValueId + '" data-object-namespace="' + namespace + '" data-object-type="' + optInfo + '">Add</button>');
+            } else if (typeof optInfo == 'object') {
+                if (optInfo instanceof Array) {
+                    console.error("TODO: Array type is not supported");
+                } else {
+                    var optName = optInfo['name'];
+                    var optText = null;
+                    //TODO: More name validation
+                    if (!optName) {
+                        optName = 'schema-' + this._generateFieldId();
+                        optText = optInfo['type']; //TODO: Check if already used
+                    } else {
+                        optText = optName;
                     }
-                } else if ('$ref' in schema.additionalProperties) {
-                    typeOptions.append('<option>$ref: ' + schema.additionalProperties['$ref'] + '</option>');
+                    this.innerSchemas[namespace + ':' + optName] = optInfo;
+                    var optType = optInfo['type'];
+                    //TODO: Check the type, it must be string and the value must be primitive
+                    //TODO: Check the schema, it must have name property and the name must be 
+                    // unique among other types in the same list (or one overwrites others).
+                    inner.append(' <button class="field-add property-add" data-field-id="' + fieldValueId + '" data-object-namespace="' + namespace + '" data-object-type="' + optType + '" data-schema-name="' + optName + '">Add</button>');
+                }
+            }
+        } else {
+            var typeOptions = $('<select id="' + fieldValueId + '-type"></select> ');
+            if (propertyTypes.length) {
+                for (var iapt = 0; iapt < propertyTypes.length; ++iapt) {
+                    var optInfo = propertyTypes[iapt];
+                    if (typeof optInfo == 'string') {
+                        typeOptions.append('<option>' + optInfo + '</option>');
+                    } else if (typeof optInfo == 'object') {
+                        if (optInfo instanceof Array) {
+                            console.error("Error: array in type list");
+                            continue;
+                        }
+                        var optName = optInfo['name'];
+                        var optText = null;
+                        //TODO: More name validation
+                        if (!optName) {
+                            optName = 'schema-' + this._generateFieldId();
+                            optText = optInfo['type']; //TODO: Check if already used
+                        } else {
+                            optText = optName;
+                        }
+                        this.innerSchemas[namespace + ':' + optName] = optInfo;
+                        var optType = optInfo['type'];
+                        //TODO: Check the type, it must be string and the value must be primitive
+                        //TODO: Check the schema, it must have name property and the name must be 
+                        // unique among other types in the same list (or one overwrites others).
+                        var optN = $('<option>' + optText + '</option>');
+                        optN.attr('value', optType);
+                        optN.attr('data-schema-name', optName);
+                        typeOptions.append(optN);
+                    } else {
+                        console.error("Error: invalid type in type list");
+                    }
                 }
             } else {
+                //TODO: Any type
                 typeOptions.append('<option>string</option>');
                 typeOptions.append('<option>number</option>');
                 typeOptions.append('<option>integer</option>');
