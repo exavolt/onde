@@ -2,6 +2,60 @@
     "description": "Onde test schema",
     "type": "object",
     "properties": {
+        "bareTypes": {
+            "type": "object",
+            "description": "The type of each property is defined as plain string.",
+            "properties": {
+                "string": "string",
+                "number": "number",
+                "integer": "integer",
+                "boolean": "boolean",
+                "array": "array",
+                "object": "object"
+            }
+        },
+        "stringTests": {
+            "type": "object",
+            "description": "Test set for string property.",
+            "properties": {
+                "string_001": "string",
+                "string_002": { "type": "string" },
+                "string_003": {
+                    "type": "string",
+                    "description": "Now with description."
+                },
+                "string_004": {
+                    "type": "string",
+                    "description": "This property has default value.",
+                    "default": "Default value of a string property."
+                },
+                "string_005": {
+                    "type": "string",
+                    "description": "A required property (the value must not be empty).",
+                    "required": true
+                }
+            }
+        },
+        "numberTests": {
+            "type": "object",
+            "properties": {
+                "number_001": "number",
+                "number_002": { "type": "number" },
+                "number_003": {
+                    "type": "number",
+                    "default": 42
+                }
+            }
+        },
+        "errorTests": {
+            "type": "object",
+            "description": "A set of test with errors.",
+            "properties": {
+                "null": null,
+                "emptyString": "",
+                "emptyObject": {}
+            }
+        },
         "string": {
             "type": "string"
         },
@@ -59,18 +113,6 @@
         },
         "bareUnion": ["string", "number"],
         "anyType": {
-        },
-        "bareTypes": {
-            "type": "object",
-            "description": "The type of each property are defined as plain string.",
-            "properties": {
-                "string": "string",
-                "number": "number",
-                "integer": "integer",
-                "boolean": "boolean",
-                "array": "array",
-                "object": "object"
-            }
         },
         "arrays": {
             "type": "object",

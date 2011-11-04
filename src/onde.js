@@ -1,6 +1,7 @@
 
 
 //BUG: Nameless schema
+//BUG: String default
 //TODO: Support for readonly
 //TODO: Fix the mess: field value id and field id
 //TODO: Type could be array (!)
@@ -33,6 +34,8 @@
 //TODO: Should support something like: { "type": "object", "properties": { "name": "string" } }. With `name` value is string with all default properties.
 //TODO: Required: any (any field), combo (set of combination)
 //TODO: Automatically add first array item if the item type is singular
+//TODO: (non-)Exclusive enum
+//TODO: Display character counter for string field if the length is constrained
 
 
 /*FIXME: Monkey-patching is not recommended */
@@ -80,11 +83,12 @@ var onde = (function () {
     };
 })();
 
-onde.primitiveTypes = ['string', 'number', 'integer', 'boolean']; //FIXME: More types
+onde.PRIMITIVE_TYPES = ['string', 'number', 'integer', 'boolean', 'array', 'object'];
 //onde.simpleTypes = ['string', 'number', 'integer', 'boolean', 'object', 'array', 'null', 'any'];
 
-onde.Onde = function (formId, schema, documentInst) {
+onde.Onde = function (formId, schema, documentInst, opts) {
     var _inst = this;
+    this.externalSchemas = {}; // A hash of cached external schemas. The key is the full URL of the schema.
     this.innerSchemas = {};
     this.fieldNamespaceSeparator = '.';
     this.fieldNamespaceSeparatorRegex = /\./g;
@@ -184,6 +188,11 @@ onde.Onde.prototype.render = function (schema, data) {
 };
 
 
+onde.Onde.prototype.getSchema = function (schemaURL) {
+    //TODO: Implement schema management
+    return null;
+};
+
 onde.Onde.prototype.renderObject = function (schema, parentNode, namespace, data) {
     schema = schema || { type: "object", additionalProperties: true, _deletable: true };
     var props = schema.properties || {};
@@ -221,13 +230,27 @@ onde.Onde.prototype.renderObject = function (schema, parentNode, namespace, data
     } else {
         for (var propName in props) {
             if (props.hasOwnProperty(propName) && (!schema.primaryProperty || propName != schema.primaryProperty)) {
-                sortedKeys.push(propName);
+                if (sortedKeys.indexOf(propName) < 0) {
+                    sortedKeys.push(propName);
+                }
             }
         }
     }
     // Last property to be collected is the primary, if any.
     if (schema.primaryProperty) {
         sortedKeys.unshift(schema.primaryProperty);
+    }
+    if (schema['extends']) {
+        for (var ixs = 0; ixs < schema['extends'].length; ++ixs) {
+            var extSchema = this.getSchema(schema['extends'][ixs]);
+            for (var propName in extSchema.properties) {
+                if (propName in props) {
+                } else {
+                    props[propName] = extSchema.properties[propName];
+                    sortedKeys.push(propName);
+                }
+            }
+        }
     }
     var objectId = 'field-' + this._fieldNameToID(namespace);
     var fieldValueId = 'fieldvalue-' + this._fieldNameToID(namespace);
@@ -249,8 +272,10 @@ onde.Onde.prototype.renderObject = function (schema, parentNode, namespace, data
         }
         baseNode.append(rowN);
     }
-    if (!schema.properties && (!('additionalProperties' in schema) || schema.additionalProperties !== false)) {
-        schema.additionalProperties = true;
+    if (!schema.properties) {
+        if (!('additionalProperties' in schema)) {
+            schema.additionalProperties = true;
+        }
     }
     // Now check if the object has additional properties
     if (schema.additionalProperties) {
@@ -341,6 +366,10 @@ onde.Onde.prototype.renderObject = function (schema, parentNode, namespace, data
                             console.error("Error: array in type list");
                             continue;
                         }
+                        if ('$ref' in optInfo) {
+                            //TODO:FIXME:HACK
+                            optInfo = this.getSchema(optInfo['$ref']);
+                        }
                         var optName = optInfo['name'];
                         var optText = null;
                         //TODO: More name validation
@@ -365,12 +394,9 @@ onde.Onde.prototype.renderObject = function (schema, parentNode, namespace, data
                 }
             } else {
                 //TODO: Any type
-                typeOptions.append('<option>string</option>');
-                typeOptions.append('<option>number</option>');
-                typeOptions.append('<option>integer</option>');
-                typeOptions.append('<option>boolean</option>');
-                typeOptions.append('<option>object</option>');
-                typeOptions.append('<option>array</option>');
+                for (var ipt = 0; ipt < onde.PRIMITIVE_TYPES.length; ++ipt) {
+                    typeOptions.append('<option>' + onde.PRIMITIVE_TYPES[ipt] + '</option>');
+                }
             }
             inner.append(typeOptions);
             inner.append(' <button class="field-add property-add" data-field-id="' + fieldValueId + '" data-object-namespace="' + namespace + '">Add</button>');
@@ -384,14 +410,20 @@ onde.Onde.prototype.renderObject = function (schema, parentNode, namespace, data
 
 onde.Onde.prototype.renderEnumField = function (fieldName, fieldInfo, valueData) {
     //TODO: If the property is not required, show 'null' value
+    //TODO: Select value or default if no data provided
+    //TODO: If not exclusive, use combo box
     var fieldNode = null;
     if (fieldInfo && fieldInfo.enum) {
         var optn = null;
         fieldNode = $('<select id="fieldvalue-' + this._fieldNameToID(fieldName) + '" name="' + fieldName + '"></select>');
-        fieldNode.append('<option value=""></option>');
+        if (!fieldInfo.required) {
+            // The 'null' option
+            fieldNode.append('<option value=""></option>');
+        }
         for (var iev = 0; iev < fieldInfo.enum.length; iev++) {
             //TODO: Select the value
             optn = $('<option>' + fieldInfo.enum[iev] + '</option>');
+            // Select the value if the data is valid
             if (typeof valueData == fieldInfo.type && fieldInfo.enum[iev] == valueData) {
                 optn.attr('selected', 'selected');
             }
@@ -422,7 +454,11 @@ onde.Onde.prototype._sanitizeFieldInfo = function (fieldInfo, valueData) {
 
 onde.Onde.prototype.renderFieldValue = function (fieldName, fieldInfo, parentNode, valueData) {
     //TODO: Allow schema-less render (with multiline string as the fallback)
+    //TODO: Read-only
     var fieldValueId = 'fieldvalue-' + this._fieldNameToID(fieldName);
+    if ('$ref' in fieldInfo) {
+        console.log(filedInfo);
+    }
     fieldInfo = this._sanitizeFieldInfo(fieldInfo, valueData);
     var fieldDesc = fieldInfo ? fieldInfo.description || fieldInfo.title : null;
     if (!fieldInfo || !fieldInfo.type || fieldInfo.type == 'any') {
@@ -435,6 +471,9 @@ onde.Onde.prototype.renderFieldValue = function (fieldName, fieldInfo, parentNod
             parentNode.append("InternalError: Type of 'any' is currently not supported");
         }
     } else if (fieldInfo.type == 'string') {
+        if (fieldInfo.readonly) {
+            valueData = fieldInfo.value;
+        }
         // String property
         var tdN = $('<span class="value"></span>');
         var fieldNode = null;
@@ -456,11 +495,18 @@ onde.Onde.prototype.renderFieldValue = function (fieldName, fieldInfo, parentNod
             if (fieldInfo && fieldInfo.title) {
                 fieldNode.attr('title', fieldInfo.title);
             }
+            if (fieldInfo['default']) {
+                //TODO: Check the type
+                fieldNode.attr('placeholder', fieldInfo['default']);
+            }
             /*if (fieldInfo.format) {
                 fieldNode.addClass(fieldInfo.format);
             }*/
         }
         fieldNode.attr('data-type', fieldInfo.type);
+        if (fieldInfo.readonly) {
+            fieldNode.attr('readonly', 'readonly');
+        }
         tdN.append(fieldNode);
         if (fieldDesc) {
             tdN.append(' <small class="description"><em>' + fieldDesc + '</em></small>');
@@ -483,13 +529,12 @@ onde.Onde.prototype.renderFieldValue = function (fieldName, fieldInfo, parentNod
                     fieldNode.val(parseFloat(valueData));
                 }
             }
-            if (fieldInfo) {
-                if (fieldInfo.title) {
-                    fieldNode.attr('title', fieldInfo.title);
-                }
-                if ('default' in fieldInfo) {
-                    fieldNode.attr('placeholder', fieldInfo['default']);
-                }
+            if (fieldInfo.title) {
+                fieldNode.attr('title', fieldInfo.title);
+            }
+            if (fieldInfo['default']) {
+                //TODO: Check the type
+                fieldNode.attr('placeholder', fieldInfo['default']);
             }
         }
         fieldNode.attr('data-type', fieldInfo.type);
@@ -510,7 +555,7 @@ onde.Onde.prototype.renderFieldValue = function (fieldName, fieldInfo, parentNod
             if (fieldInfo.title) {
                 fieldNode.attr('title', fieldInfo.title);
             }
-            if ('default' in fieldInfo) {
+            if ('default' in fieldInfo && fieldInfo['default']) {
                 fieldNode.attr('checked', 'checked');
             }
         }
@@ -573,6 +618,10 @@ onde.Onde.prototype.renderFieldValue = function (fieldName, fieldInfo, parentNod
                 if (optInfo instanceof Array) {
                     console.error("TODO: Array type is not supported");
                 } else {
+                    if ('$ref' in optInfo) {
+                        //TODO:FIXME:HACK
+                        optInfo = this.getSchema(optInfo['$ref']);
+                    }
                     var optName = optInfo['name'];
                     var optText = null;
                     //TODO: More name validation
@@ -602,6 +651,10 @@ onde.Onde.prototype.renderFieldValue = function (fieldName, fieldInfo, parentNod
                             console.error("Error: array in type list");
                             continue;
                         }
+                        if ('$ref' in optInfo) {
+                            //TODO:FIXME:HACK
+                            optInfo = this.getSchema(optInfo['$ref']);
+                        }
                         var optName = optInfo['name'];
                         var optText = null;
                         //TODO: More name validation
@@ -626,12 +679,9 @@ onde.Onde.prototype.renderFieldValue = function (fieldName, fieldInfo, parentNod
                 }
             } else {
                 //TODO: Any type
-                typeOptions.append('<option>string</option>');
-                typeOptions.append('<option>number</option>');
-                typeOptions.append('<option>integer</option>');
-                typeOptions.append('<option>boolean</option>');
-                typeOptions.append('<option>object</option>');
-                typeOptions.append('<option>array</option>');
+                for (var ipt = 0; ipt < onde.PRIMITIVE_TYPES.length; ++ipt) {
+                    typeOptions.append('<option>' + onde.PRIMITIVE_TYPES[ipt] + '</option>');
+                }
             }
             inner.append(typeOptions);
             inner.append(' <button class="field-add item-add" data-field-id="' + fieldValueId + '" data-object-namespace="' + fieldName + '" data-last-index="' + lastIndex + '">Add</button>');
@@ -653,6 +703,12 @@ onde.Onde.prototype.renderObjectPropertyField = function (namespace, baseId, fie
     var collectionType = false;
     var rowN = $('<li></li>');
     fieldInfo = this._sanitizeFieldInfo(fieldInfo, valueData);
+    if (!fieldInfo) {
+        //TODO: Render the label first
+        //TODO: Handle more cases
+        rowN.append("SchemaError: Expect a valid property information. Got <strong><tt>" + fieldInfo + "</tt></strong>.");
+        return rowN;
+    }
     rowN.addClass('field');
     if (typeof fieldInfo.type == 'string') {
         if (fieldInfo.type._startsWith('$ref: ')) {
