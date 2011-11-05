@@ -9,6 +9,10 @@
         "objectOfSpecifiedAdditionalPropertyTypes": {
             "type": "object",
             "additionalProperties": ["number", "string"]
+        },
+        "objectOfString": {
+            "type": "object",
+            "additionalProperties": "string"
         }
     }
 }

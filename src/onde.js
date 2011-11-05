@@ -333,8 +333,14 @@ onde.Onde.prototype.renderObject = function (schema, parentNode, namespace, data
         if (propertyTypes.length == 1) {
             var optInfo = propertyTypes[0];
             if (typeof optInfo == 'string') {
-                //TODO: Validate the value
-                inner.append(' <button class="field-add property-add" data-field-id="' + fieldValueId + '" data-object-namespace="' + namespace + '" data-object-type="' + optInfo + '">Add</button>');
+                // Option is provided as simple string
+                var addN = $('<button>Add</button>');
+                addN.addClass('field-add').
+                    addClass('property-add');
+                addN.attr('data-field-id', fieldValueId).
+                    attr('data-object-namespace', namespace).
+                    attr('data-object-type', optInfo);
+                inner.append(' ').append(addN);
             } else if (typeof optInfo == 'object') {
                 if (optInfo instanceof Array) {
                     console.error("InternalError: Type list is not supported");
@@ -352,13 +358,25 @@ onde.Onde.prototype.renderObject = function (schema, parentNode, namespace, data
                         var optText = optInfo['name'] || optType;
                         var optSchemaName = 'schema-' + this._generateFieldId();
                         this.innerSchemas[optSchemaName] = optInfo;
-                        inner.append(' <button class="field-add property-add" data-field-id="' + fieldValueId + '" data-object-namespace="' + namespace + '" data-object-type="' + optType + '" data-schema-name="' + optSchemaName + '">Add</button>');
+                        var addN = $('<button>Add</button>');
+                        addN.addClass('field-add').
+                            addClass('property-add');
+                        addN.attr('data-field-id', fieldValueId).
+                            attr('data-object-namespace', namespace).
+                            attr('data-object-type', optType).
+                            attr('data-schema-name', optSchemaName);
+                        inner.append(' ').append(addN);
                     }
                 }
             }
         } else {
             inner.append(this.renderTypeSelector(propertyTypes, fieldValueId));
-            inner.append(' <button class="field-add property-add" data-field-id="' + fieldValueId + '" data-object-namespace="' + namespace + '">Add</button>');
+            var addN = $('<button>Add</button>');
+            addN.addClass('field-add').
+                addClass('property-add');
+            addN.attr('data-field-id', fieldValueId).
+                attr('data-object-namespace', namespace);
+            inner.append(' ').append(addN);
         }
         editBar.append(inner);
         parentNode.append(editBar);
