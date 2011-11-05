@@ -330,17 +330,16 @@ onde.Onde.prototype.renderObject = function (schema, parentNode, namespace, data
         var inner = $('<small></small>');
         inner.append('Add property: ');
         inner.append('<input type="text" id="' + fieldValueId + '-key" placeholder="Property name" /> ');
+        var addBtn = $('<button>Add</button>');
+        addBtn.addClass('field-add').
+            addClass('property-add');
+        addBtn.attr('data-field-id', fieldValueId).
+            attr('data-object-namespace', namespace);
         if (propertyTypes.length == 1) {
             var optInfo = propertyTypes[0];
             if (typeof optInfo == 'string') {
                 // Option is provided as simple string
-                var addN = $('<button>Add</button>');
-                addN.addClass('field-add').
-                    addClass('property-add');
-                addN.attr('data-field-id', fieldValueId).
-                    attr('data-object-namespace', namespace).
-                    attr('data-object-type', optInfo);
-                inner.append(' ').append(addN);
+                addBtn.attr('data-object-type', optInfo);
             } else if (typeof optInfo == 'object') {
                 if (optInfo instanceof Array) {
                     console.error("InternalError: Type list is not supported");
@@ -358,26 +357,16 @@ onde.Onde.prototype.renderObject = function (schema, parentNode, namespace, data
                         var optText = optInfo['name'] || optType;
                         var optSchemaName = 'schema-' + this._generateFieldId();
                         this.innerSchemas[optSchemaName] = optInfo;
-                        var addN = $('<button>Add</button>');
-                        addN.addClass('field-add').
-                            addClass('property-add');
-                        addN.attr('data-field-id', fieldValueId).
-                            attr('data-object-namespace', namespace).
-                            attr('data-object-type', optType).
+                        addBtn.attr('data-object-type', optType).
                             attr('data-schema-name', optSchemaName);
-                        inner.append(' ').append(addN);
                     }
                 }
             }
         } else {
+            // Render type list as type selector
             inner.append(this.renderTypeSelector(propertyTypes, fieldValueId));
-            var addN = $('<button>Add</button>');
-            addN.addClass('field-add').
-                addClass('property-add');
-            addN.attr('data-field-id', fieldValueId).
-                attr('data-object-namespace', namespace);
-            inner.append(' ').append(addN);
         }
+        inner.append(' ').append(addBtn);
         editBar.append(inner);
         parentNode.append(editBar);
     }
@@ -491,6 +480,7 @@ onde.Onde.prototype._sanitizeFieldInfo = function (fieldInfo, valueData) {
 onde.Onde.prototype.renderFieldValue = function (fieldName, fieldInfo, parentNode, valueData) {
     //TODO: Allow schema-less render (with multiline string as the fallback)
     //TODO: Read-only
+    //TODO: Schema ref
     var fieldValueId = 'fieldvalue-' + this._fieldNameToID(fieldName);
     if ('$ref' in fieldInfo) {
         console.log(filedInfo);
@@ -645,11 +635,17 @@ onde.Onde.prototype.renderFieldValue = function (fieldName, fieldInfo, parentNod
         var editBar = $('<div class="edit-bar array" id="' + fieldValueId + '-edit-bar"></div>');
         var inner = $('<small></small>');
         inner.append('Add item: ');
+        var addBtn = $('<button>Add</button>');
+        addBtn.addClass('field-add').
+            addClass('item-add');
+        addBtn.attr('data-field-id', fieldValueId).
+            attr('data-object-namespace', fieldName).
+            attr('data-last-index', lastIndex);
         if (itemTypes.length == 1) {
             var optInfo = itemTypes[0];
             if (typeof optInfo == 'string') {
-                //TODO: Validate the value
-                inner.append(' <button class="field-add item-add" data-field-id="' + fieldValueId + '" data-object-namespace="' + fieldName + '" data-object-type="' + optInfo + '" data-last-index="' + lastIndex + '">Add</button>');
+                // Option is provided as simple string
+                addBtn.attr('data-object-type', optInfo);
             } else if (typeof optInfo == 'object') {
                 if (optInfo instanceof Array) {
                     console.error("TODO: Array type is not supported");
@@ -667,19 +663,19 @@ onde.Onde.prototype.renderFieldValue = function (fieldName, fieldInfo, parentNod
                         var optText = optInfo['name'] || optType;
                         var optSchemaName = 'schema-' + this._generateFieldId();
                         this.innerSchemas[optSchemaName] = optInfo;
-                        inner.append(' <button class="field-add item-add" data-field-id="' + fieldValueId + '" data-object-namespace="' + fieldName + '" data-object-type="' + optType + '" data-schema-name="' + optSchemaName + '" data-last-index="' + lastIndex + '">Add</button>');
+                        addBtn.attr('data-object-type', optType).
+                            attr('data-schema-name', optSchemaName);
                     }
                 }
             }
         } else {
+            // Render type list as type selector
             inner.append(this.renderTypeSelector(itemTypes, fieldValueId));
-            inner.append(' <button class="field-add item-add" data-field-id="' + fieldValueId + '" data-object-namespace="' + fieldName + '" data-last-index="' + lastIndex + '">Add</button>');
         }
+        inner.append(' ').append(addBtn);
         editBar.append(inner);
         parentNode.append(editBar);
         return;
-    } else if (fieldInfo.type == '$ref: #') { //HACK
-        this.renderObject(this.documentSchema, parentNode, fieldName, valueData);
     } else {
         var tdN = $('<span class="value">InternalError: Unsupported property type: <tt>' + fieldInfo.type + '</tt></span>');
         parentNode.append(tdN);
@@ -720,7 +716,7 @@ onde.Onde.prototype.renderObjectPropertyField = function (namespace, baseId, fie
     //rowN.addClass(baseId + '-property');
     var labelN = $('<label for="' + fieldValueId + '"></label>');
     labelN.addClass('field-name');
-    if ((fieldType == 'object' && fieldInfo.display != 'inline') || fieldType == 'array' || (typeof fieldType == 'string' && fieldType._startsWith('$ref: '))) {
+    if ((fieldType == 'object' && fieldInfo.display != 'inline') || fieldType == 'array') {
         labelN.addClass('collapsible');
     }
     // Use the label if provided. Otherwise, use property name.
@@ -779,12 +775,8 @@ onde.Onde.prototype.renderListItemField = function (namespace, fieldInfo, index,
     fieldInfo = this._sanitizeFieldInfo(fieldInfo, valueData);
     rowN.addClass('field');
     if (typeof fieldInfo.type == 'string') {
-        if (fieldInfo.type._startsWith('$ref: ')) {
-            rowN.addClass('object');
-        } else {
-            rowN.addClass(fieldInfo.type);
-            collectionType = (fieldInfo.type == 'object' || fieldInfo.type == 'array');
-        }
+        rowN.addClass(fieldInfo.type);
+        collectionType = (fieldInfo.type == 'object' || fieldInfo.type == 'array');
     }
     rowN.addClass('array-item');
     rowN.attr('id', 'field-' + this._fieldNameToID(fieldName));
