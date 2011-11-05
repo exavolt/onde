@@ -279,10 +279,12 @@ onde.Onde.prototype.renderObject = function (schema, parentNode, namespace, data
     }
     // Now check if the object has additional properties
     if (schema.additionalProperties) {
+        //NOTE: additionalProperties could have 4 types of value: boolean, 
+        // string (the name of the type), object (type info), array of types.
         if (schema.additionalProperties === true) {
             var firstItem = rowN ? false : true;
-            //TODO: Check the type of the value
             for (var dKey in data) {
+                //NOTE: No need to check the types. Will be done by the inner renderers.
                 // Take only additional items
                 if (sortedKeys.indexOf(dKey) === -1) {
                     rowN = this.renderObjectPropertyField(namespace, objectId, 
@@ -308,7 +310,7 @@ onde.Onde.prototype.renderObject = function (schema, parentNode, namespace, data
     // Gather the types available to additional properties
     if ('additionalProperties' in schema) {
         if (typeof schema.additionalProperties == 'string') {
-            //TODO: Validate the value
+            // Simply turn it into array (will be validated later)
             propertyTypes = [schema.additionalProperties];
         } else if (typeof schema.additionalProperties == 'object') {
             if (schema.additionalProperties instanceof Array) {
@@ -700,29 +702,38 @@ onde.Onde.prototype.renderFieldValue = function (fieldName, fieldInfo, parentNod
 onde.Onde.prototype.renderObjectPropertyField = function (namespace, baseId, fieldInfo, propName, valueData) {
     var fieldName = namespace + this.fieldNamespaceSeparator + propName;
     var fieldValueId = 'fieldvalue-' + this._fieldNameToID(fieldName);
+    var fieldType = null;
     var collectionType = false;
     var rowN = $('<li></li>');
     fieldInfo = this._sanitizeFieldInfo(fieldInfo, valueData);
-    if (!fieldInfo) {
-        //TODO: Render the label first
-        //TODO: Handle more cases
-        rowN.append("SchemaError: Expect a valid property information. Got <strong><tt>" + fieldInfo + "</tt></strong>.");
-        return rowN;
-    }
     rowN.addClass('field');
-    if (typeof fieldInfo.type == 'string') {
-        if (fieldInfo.type._startsWith('$ref: ')) {
-            rowN.addClass('object');
+    if (fieldInfo) {
+        //TODO: Support schema reference
+        //TODO: Other types of type
+        if (typeof fieldInfo == 'string') {
+            fieldType = fieldInfo;
+            fieldInfo = {};
+        } else if (typeof fieldInfo == 'object') {
+            if (fieldInfo instanceof Array) {
+                //TODO: Union
+            } else if (typeof fieldInfo.type == 'string') {
+                fieldType = fieldInfo.type;
+            } else {
+                console.warn("Invalid field info type: " + fieldInfo.type);
+            }
         } else {
-            rowN.addClass(fieldInfo.type);
-            collectionType = (fieldInfo.type == 'object' || fieldInfo.type == 'array');
+            console.warn("Invalid field info type: " + (typeof fieldInfo.type));
         }
+    } else {
+        fieldInfo = {};
     }
+    rowN.addClass(fieldType);
+    collectionType = (fieldType == 'object' || fieldType == 'array');
     //rowN.addClass('property');
     //rowN.addClass(baseId + '-property');
     var labelN = $('<label for="' + fieldValueId + '"></label>');
     labelN.addClass('field-name');
-    if ((fieldInfo.type == 'object' && fieldInfo.display != 'inline') || fieldInfo.type == 'array' || (typeof fieldInfo.type == 'string' && fieldInfo.type._startsWith('$ref: '))) {
+    if ((fieldType == 'object' && fieldInfo.display != 'inline') || fieldType == 'array' || (typeof fieldType == 'string' && fieldType._startsWith('$ref: '))) {
         labelN.addClass('collapsible');
     }
     // Use the label if provided. Otherwise, use property name.

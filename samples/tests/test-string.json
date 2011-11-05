@@ -1,0 +1,22 @@
+{
+    "type": "object",
+    "description": "Test set for string property.",
+    "properties": {
+        "string_001": "string",
+        "string_002": { "type": "string" },
+        "string_003": {
+            "type": "string",
+            "description": "Now with description."
+        },
+        "string_004": {
+            "type": "string",
+            "description": "This property has default value.",
+            "default": "Default value of a string property."
+        },
+        "string_005": {
+            "type": "string",
+            "description": "A required property (the value must not be empty).",
+            "required": true
+        }
+    }
+}

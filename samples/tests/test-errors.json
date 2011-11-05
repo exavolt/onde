@@ -1,0 +1,9 @@
+{
+    "type": "object",
+    "description": "A set of test with errors.",
+    "properties": {
+        "nullDef": null,
+        "emptyString": "",
+        "emptyObject": {}
+        }
+    }

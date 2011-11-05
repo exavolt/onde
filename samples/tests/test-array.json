@@ -1,0 +1,54 @@
+{
+    "type": "object",
+    "properties": {
+        "noItems": {
+            "type": "array",
+            "description": "User must be able use any type for the value of the items."
+        },
+        "bareItems": {
+            "type": "array",
+            "description": "User can only use the specified type (in this case, it's string) for the value of the items.",
+            "items": "string"
+        },
+        "schemaItems": {
+            "type": "array",
+            "description": "User can only use the specified type (in this case, it's number) for the value of the items. The schema may specify additional properties of the type.",
+            "items": { "type": "number", "default": 10 }
+        },
+        "arrayItems": {
+            "type": "array",
+            "items": [ "number", "string" ]
+        },
+        "mixedItems": {
+            "type": "array",
+            "items": [ "string", { "type": "array", "items": "string" }, { "type": "number" }, { "type": "boolean", "default": true } ]
+        },
+        "arrayOfString": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "arrayOfBareItems": {
+            "type": "array",
+            "items": "number"
+        },
+        "arrayOfAny": {
+            "type": "array"
+        },
+        "arrayOfSpecifiedTypes": {
+            "type": "array",
+            "items": [
+                { "type": "string" }, 
+                { "type": "number" },
+                "boolean",
+                { "type": "object", "additionalProperties": true },
+                { "type": "array" }
+            ]
+        },
+        "arrayOfSpecifiedBareTypes": {
+            "type": "array",
+            "items": [ "string", "number" ]
+        }
+    }
+}

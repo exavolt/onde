@@ -1,0 +1,14 @@
+{
+    "type": "object",
+    "properties": {
+        "objectOfAny": {
+            "type": "object",
+            "additionalProperties": true,
+            "properties": {}
+        },
+        "objectOfSpecifiedAdditionalPropertyTypes": {
+            "type": "object",
+            "additionalProperties": ["number", "string"]
+        }
+    }
+}

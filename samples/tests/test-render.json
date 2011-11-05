@@ -1,0 +1,32 @@
+{
+    "description": "Onde test schema",
+    "type": "object",
+    "properties": {
+        "nullType": null,
+        "anyString": "any",
+        "anyType": {},
+        "bareTypes": {
+            "type": "object",
+            "description": "The type of each property is defined as plain string.",
+            "properties": {
+                "string": "string",
+                "number": "number",
+                "integer": "integer",
+                "boolean": "boolean",
+                "array": "array",
+                "object": "object"
+            }
+        },
+        "simpleTypes": {
+            "type": "object",
+            "properties": {
+                "string": { "type": "string" },
+                "number": { "type": "number" },
+                "integer": { "type": "integer" },
+                "boolean": { "type": "boolean" },
+                "array": { "type": "array" },
+                "object": { "type": "object" }
+            }
+        }
+    }
+}

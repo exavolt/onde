@@ -1,0 +1,11 @@
+{
+    "type": "object",
+    "properties": {
+        "number_001": "number",
+        "number_002": { "type": "number" },
+        "number_003": {
+            "type": "number",
+            "default": 42
+        }
+    }
+}
