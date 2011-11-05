@@ -337,16 +337,23 @@ onde.Onde.prototype.renderObject = function (schema, parentNode, namespace, data
                 inner.append(' <button class="field-add property-add" data-field-id="' + fieldValueId + '" data-object-namespace="' + namespace + '" data-object-type="' + optInfo + '">Add</button>');
             } else if (typeof optInfo == 'object') {
                 if (optInfo instanceof Array) {
-                    console.error("TODO: Array type is not supported");
+                    console.error("InternalError: Type list is not supported");
                 } else {
-                    var optType = optInfo['type'];
-                    //TODO: Check the type, it must be string and the value must be primitive
-                    //TODO: Check the schema, it must have name property and the name must be 
-                    // unique among other types in the same list (or one overwrites others).
-                    var optText = optInfo['name'] || optType;
-                    var optSchemaName = 'schema-' + this._generateFieldId();
-                    this.innerSchemas[optSchemaName] = optInfo;
-                    inner.append(' <button class="field-add property-add" data-field-id="' + fieldValueId + '" data-object-namespace="' + namespace + '" data-object-type="' + optType + '" data-schema-name="' + optSchemaName + '">Add</button>');
+                    if ('$ref' in optInfo) {
+                        // Replace the option info with the referenced schema
+                        optInfo = this.getSchema(optInfo['$ref']);
+                        if (!optInfo) {
+                            console.error("SchemaError: Could not resolve referenced schema");
+                        }
+                    }
+                    if (optInfo) {
+                        var optType = optInfo['type'];
+                        //TODO: Check the type, it must be string and the value must be primitive
+                        var optText = optInfo['name'] || optType;
+                        var optSchemaName = 'schema-' + this._generateFieldId();
+                        this.innerSchemas[optSchemaName] = optInfo;
+                        inner.append(' <button class="field-add property-add" data-field-id="' + fieldValueId + '" data-object-namespace="' + namespace + '" data-object-type="' + optType + '" data-schema-name="' + optSchemaName + '">Add</button>');
+                    }
                 }
             }
         } else {
@@ -361,49 +368,69 @@ onde.Onde.prototype.renderObject = function (schema, parentNode, namespace, data
 
 
 onde.Onde.prototype.renderEnumField = function (fieldName, fieldInfo, valueData) {
-    //TODO: If the property is not required, show 'null' value
-    //TODO: Select value or default if no data provided
+    // Renders field with enum property set.
+    // The field will be rendered as dropdown.
     //TODO: If not exclusive, use combo box
     var fieldNode = null;
+    var selectedValue = null;
+    var hasSelected = false;
+    // First, check if there's any data provided.
+    // If so, check if the enum has the same value
+    // If so, save the information
+    if (typeof valueData === fieldInfo.type && fieldInfo.enum.indexOf(valueData) >= 0) {
+        selectedValue = valueData;
+        hasSelected = true;
+    }
+    // If there's no data provided, or the data is not valid, 
+    // try to get selected value from the default.
+    if (!hasSelected && typeof fieldInfo['default'] === fieldInfo.type && fieldInfo.enum.indexOf(fieldInfo['default']) >= 0) {
+        selectedValue = fieldInfo['default'];
+        hasSelected = true;
+    }
     if (fieldInfo && fieldInfo.enum) {
-        var optn = null;
+        var optN = null;
         fieldNode = $('<select id="fieldvalue-' + this._fieldNameToID(fieldName) + '" name="' + fieldName + '"></select>');
         if (!fieldInfo.required) {
-            // The 'null' option
+            // Add the 'null' option if the field is not required
             fieldNode.append('<option value=""></option>');
         }
         for (var iev = 0; iev < fieldInfo.enum.length; iev++) {
-            //TODO: Select the value
-            optn = $('<option>' + fieldInfo.enum[iev] + '</option>');
-            // Select the value if the data is valid
-            if (typeof valueData == fieldInfo.type && fieldInfo.enum[iev] == valueData) {
-                optn.attr('selected', 'selected');
+            optN = $('<option>' + fieldInfo.enum[iev] + '</option>');
+            // Select the value
+            if (hasSelected && selectedValue == fieldInfo.enum[iev]) {
+                optN.attr('selected', 'selected');
             }
-            fieldNode.append(optn);
+            fieldNode.append(optN);
         }
     }
     return fieldNode;
 };
 onde.Onde.prototype.renderTypeSelector = function (typeList, fieldValueId) {
+    // Renders type selector from type list.
+    // This selector is for field (item or property) value is not restricted into one particular type.
     var typeOptions = $('<select id="' + fieldValueId + '-type"></select> ');
-    if (typeList.length) {
+    if (typeList && typeList.length) {
         for (var iapt = 0; iapt < typeList.length; ++iapt) {
             var optInfo = typeList[iapt];
             if (typeof optInfo == 'string') {
+                // The option is plain string, simply add it as an option.
                 typeOptions.append('<option>' + optInfo + '</option>');
             } else if (typeof optInfo == 'object') {
                 if (optInfo instanceof Array) {
+                    // The option is an array.
                     console.error("SchemaError: Array in type list");
                     continue;
                 }
                 if ('$ref' in optInfo) {
-                    //TODO:FIXME:HACK
+                    // Replace the option info with the referenced schema
                     optInfo = this.getSchema(optInfo['$ref']);
+                    if (!optInfo) {
+                        console.error("SchemaError: Could not resolve referenced schema");
+                        continue;
+                    }
                 }
                 var optType = optInfo['type'];
                 //TODO: Check the type, it must be string and the value must be primitive
-                //TODO: Check the schema, it must have name property and the name must be 
-                // unique among other types in the same list (or one overwrites others).
                 var optText = optInfo['name'] || optType;
                 var optSchemaName = 'schema-' + this._generateFieldId();
                 this.innerSchemas[optSchemaName] = optInfo;
@@ -610,17 +637,20 @@ onde.Onde.prototype.renderFieldValue = function (fieldName, fieldInfo, parentNod
                     console.error("TODO: Array type is not supported");
                 } else {
                     if ('$ref' in optInfo) {
-                        //TODO:FIXME:HACK
+                        // Replace the option info with the referenced schema
                         optInfo = this.getSchema(optInfo['$ref']);
+                        if (!optInfo) {
+                            console.error("SchemaError: Could not resolve referenced schema");
+                        }
                     }
-                    var optType = optInfo['type'];
-                    //TODO: Check the type, it must be string and the value must be primitive
-                    //TODO: Check the schema, it must have name property and the name must be 
-                    // unique among other types in the same list (or one overwrites others).
-                    var optText = optInfo['name'] || optType;
-                    var optSchemaName = 'schema-' + this._generateFieldId();
-                    this.innerSchemas[optSchemaName] = optInfo;
-                    inner.append(' <button class="field-add item-add" data-field-id="' + fieldValueId + '" data-object-namespace="' + fieldName + '" data-object-type="' + optType + '" data-schema-name="' + optSchemaName + '" data-last-index="' + lastIndex + '">Add</button>');
+                    if (optInfo) {
+                        var optType = optInfo['type'];
+                        //TODO: Check the type, it must be string and the value must be primitive
+                        var optText = optInfo['name'] || optType;
+                        var optSchemaName = 'schema-' + this._generateFieldId();
+                        this.innerSchemas[optSchemaName] = optInfo;
+                        inner.append(' <button class="field-add item-add" data-field-id="' + fieldValueId + '" data-object-namespace="' + fieldName + '" data-object-type="' + optType + '" data-schema-name="' + optSchemaName + '" data-last-index="' + lastIndex + '">Add</button>');
+                    }
                 }
             }
         } else {
