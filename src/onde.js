@@ -350,43 +350,7 @@ onde.Onde.prototype.renderObject = function (schema, parentNode, namespace, data
                 }
             }
         } else {
-            var typeOptions = $('<select id="' + fieldValueId + '-type"></select> ');
-            if (propertyTypes.length) {
-                for (var iapt = 0; iapt < propertyTypes.length; ++iapt) {
-                    var optInfo = propertyTypes[iapt];
-                    if (typeof optInfo == 'string') {
-                        typeOptions.append('<option>' + optInfo + '</option>');
-                    } else if (typeof optInfo == 'object') {
-                        if (optInfo instanceof Array) {
-                            console.error("Error: array in type list");
-                            continue;
-                        }
-                        if ('$ref' in optInfo) {
-                            //TODO:FIXME:HACK
-                            optInfo = this.getSchema(optInfo['$ref']);
-                        }
-                        var optType = optInfo['type'];
-                        //TODO: Check the type, it must be string and the value must be primitive
-                        //TODO: Check the schema, it must have name property and the name must be 
-                        // unique among other types in the same list (or one overwrites others).
-                        var optText = optInfo['name'] || optType;
-                        var optSchemaName = 'schema-' + this._generateFieldId();
-                        this.innerSchemas[optSchemaName] = optInfo;
-                        var optN = $('<option>' + optText + '</option>');
-                        optN.attr('value', optType);
-                        optN.attr('data-schema-name', optSchemaName);
-                        typeOptions.append(optN);
-                    } else {
-                        console.error("Error: invalid type in type list");
-                    }
-                }
-            } else {
-                //TODO: Any type
-                for (var ipt = 0; ipt < onde.PRIMITIVE_TYPES.length; ++ipt) {
-                    typeOptions.append('<option>' + onde.PRIMITIVE_TYPES[ipt] + '</option>');
-                }
-            }
-            inner.append(typeOptions);
+            inner.append(this.renderTypeSelector(propertyTypes, fieldValueId));
             inner.append(' <button class="field-add property-add" data-field-id="' + fieldValueId + '" data-object-namespace="' + namespace + '">Add</button>');
         }
         editBar.append(inner);
@@ -419,6 +383,45 @@ onde.Onde.prototype.renderEnumField = function (fieldName, fieldInfo, valueData)
         }
     }
     return fieldNode;
+};
+onde.Onde.prototype.renderTypeSelector = function (typeList, fieldValueId) {
+    var typeOptions = $('<select id="' + fieldValueId + '-type"></select> ');
+    if (typeList.length) {
+        for (var iapt = 0; iapt < typeList.length; ++iapt) {
+            var optInfo = typeList[iapt];
+            if (typeof optInfo == 'string') {
+                typeOptions.append('<option>' + optInfo + '</option>');
+            } else if (typeof optInfo == 'object') {
+                if (optInfo instanceof Array) {
+                    console.error("SchemaError: Array in type list");
+                    continue;
+                }
+                if ('$ref' in optInfo) {
+                    //TODO:FIXME:HACK
+                    optInfo = this.getSchema(optInfo['$ref']);
+                }
+                var optType = optInfo['type'];
+                //TODO: Check the type, it must be string and the value must be primitive
+                //TODO: Check the schema, it must have name property and the name must be 
+                // unique among other types in the same list (or one overwrites others).
+                var optText = optInfo['name'] || optType;
+                var optSchemaName = 'schema-' + this._generateFieldId();
+                this.innerSchemas[optSchemaName] = optInfo;
+                var optN = $('<option>' + optText + '</option>');
+                optN.attr('value', optType);
+                optN.attr('data-schema-name', optSchemaName);
+                typeOptions.append(optN);
+            } else {
+                console.error("SchemaError: Invalid type in type list");
+            }
+        }
+    } else {
+        //TODO: Any type
+        for (var ipt = 0; ipt < onde.PRIMITIVE_TYPES.length; ++ipt) {
+            typeOptions.append('<option>' + onde.PRIMITIVE_TYPES[ipt] + '</option>');
+        }
+    }
+    return typeOptions;
 };
 
 onde.Onde.prototype._sanitizeFieldInfo = function (fieldInfo, valueData) {
@@ -621,43 +624,7 @@ onde.Onde.prototype.renderFieldValue = function (fieldName, fieldInfo, parentNod
                 }
             }
         } else {
-            var typeOptions = $('<select id="' + fieldValueId + '-type"></select> ');
-            if (itemTypes.length) {
-                for (var iapt = 0; iapt < itemTypes.length; ++iapt) {
-                    var optInfo = itemTypes[iapt];
-                    if (typeof optInfo == 'string') {
-                        typeOptions.append('<option>' + optInfo + '</option>');
-                    } else if (typeof optInfo == 'object') {
-                        if (optInfo instanceof Array) {
-                            console.error("Error: array in type list");
-                            continue;
-                        }
-                        if ('$ref' in optInfo) {
-                            //TODO:FIXME:HACK
-                            optInfo = this.getSchema(optInfo['$ref']);
-                        }
-                        var optType = optInfo['type'];
-                        //TODO: Check the type, it must be string and the value must be primitive
-                        //TODO: Check the schema, it must have name property and the name must be 
-                        // unique among other types in the same list (or one overwrites others).
-                        var optText = optInfo['name'] || optType;
-                        var optSchemaName = 'schema-' + this._generateFieldId();
-                        this.innerSchemas[optSchemaName] = optInfo;
-                        var optN = $('<option>' + optText + '</option>');
-                        optN.attr('value', optType);
-                        optN.attr('data-schema-name', optSchemaName);
-                        typeOptions.append(optN);
-                    } else {
-                        console.error("Error: invalid type in type list");
-                    }
-                }
-            } else {
-                //TODO: Any type
-                for (var ipt = 0; ipt < onde.PRIMITIVE_TYPES.length; ++ipt) {
-                    typeOptions.append('<option>' + onde.PRIMITIVE_TYPES[ipt] + '</option>');
-                }
-            }
-            inner.append(typeOptions);
+            inner.append(this.renderTypeSelector(itemTypes, fieldValueId));
             inner.append(' <button class="field-add item-add" data-field-id="' + fieldValueId + '" data-object-namespace="' + fieldName + '" data-last-index="' + lastIndex + '">Add</button>');
         }
         editBar.append(inner);
