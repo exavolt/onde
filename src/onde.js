@@ -339,21 +339,14 @@ onde.Onde.prototype.renderObject = function (schema, parentNode, namespace, data
                 if (optInfo instanceof Array) {
                     console.error("TODO: Array type is not supported");
                 } else {
-                    var optName = optInfo['name'];
-                    var optText = null;
-                    //TODO: More name validation
-                    if (!optName) {
-                        optName = 'schema-' + this._generateFieldId();
-                        optText = optInfo['type']; //TODO: Check if already used
-                    } else {
-                        optText = optName;
-                    }
-                    this.innerSchemas[namespace + ':' + optName] = optInfo;
                     var optType = optInfo['type'];
                     //TODO: Check the type, it must be string and the value must be primitive
                     //TODO: Check the schema, it must have name property and the name must be 
                     // unique among other types in the same list (or one overwrites others).
-                    inner.append(' <button class="field-add property-add" data-field-id="' + fieldValueId + '" data-object-namespace="' + namespace + '" data-object-type="' + optType + '" data-schema-name="' + optName + '">Add</button>');
+                    var optText = optInfo['name'] || optType;
+                    var optSchemaName = 'schema-' + this._generateFieldId();
+                    this.innerSchemas[optSchemaName] = optInfo;
+                    inner.append(' <button class="field-add property-add" data-field-id="' + fieldValueId + '" data-object-namespace="' + namespace + '" data-object-type="' + optType + '" data-schema-name="' + optSchemaName + '">Add</button>');
                 }
             }
         } else {
@@ -372,23 +365,16 @@ onde.Onde.prototype.renderObject = function (schema, parentNode, namespace, data
                             //TODO:FIXME:HACK
                             optInfo = this.getSchema(optInfo['$ref']);
                         }
-                        var optName = optInfo['name'];
-                        var optText = null;
-                        //TODO: More name validation
-                        if (!optName) {
-                            optName = 'schema-' + this._generateFieldId();
-                            optText = optInfo['type']; //TODO: Check if already used
-                        } else {
-                            optText = optName;
-                        }
-                        this.innerSchemas[namespace + ':' + optName] = optInfo;
                         var optType = optInfo['type'];
                         //TODO: Check the type, it must be string and the value must be primitive
                         //TODO: Check the schema, it must have name property and the name must be 
                         // unique among other types in the same list (or one overwrites others).
+                        var optText = optInfo['name'] || optType;
+                        var optSchemaName = 'schema-' + this._generateFieldId();
+                        this.innerSchemas[optSchemaName] = optInfo;
                         var optN = $('<option>' + optText + '</option>');
                         optN.attr('value', optType);
-                        optN.attr('data-schema-name', optName);
+                        optN.attr('data-schema-name', optSchemaName);
                         typeOptions.append(optN);
                     } else {
                         console.error("Error: invalid type in type list");
@@ -624,21 +610,14 @@ onde.Onde.prototype.renderFieldValue = function (fieldName, fieldInfo, parentNod
                         //TODO:FIXME:HACK
                         optInfo = this.getSchema(optInfo['$ref']);
                     }
-                    var optName = optInfo['name'];
-                    var optText = null;
-                    //TODO: More name validation
-                    if (!optName) {
-                        optName = 'schema-' + this._generateFieldId();
-                        optText = optInfo['type']; //TODO: Check if already used
-                    } else {
-                        optText = optName;
-                    }
-                    this.innerSchemas[fieldName + ':' + optName] = optInfo;
                     var optType = optInfo['type'];
                     //TODO: Check the type, it must be string and the value must be primitive
                     //TODO: Check the schema, it must have name property and the name must be 
                     // unique among other types in the same list (or one overwrites others).
-                    inner.append(' <button class="field-add item-add" data-field-id="' + fieldValueId + '" data-object-namespace="' + fieldName + '" data-object-type="' + optType + '" data-schema-name="' + optName + '" data-last-index="' + lastIndex + '">Add</button>');
+                    var optText = optInfo['name'] || optType;
+                    var optSchemaName = 'schema-' + this._generateFieldId();
+                    this.innerSchemas[optSchemaName] = optInfo;
+                    inner.append(' <button class="field-add item-add" data-field-id="' + fieldValueId + '" data-object-namespace="' + fieldName + '" data-object-type="' + optType + '" data-schema-name="' + optSchemaName + '" data-last-index="' + lastIndex + '">Add</button>');
                 }
             }
         } else {
@@ -657,23 +636,16 @@ onde.Onde.prototype.renderFieldValue = function (fieldName, fieldInfo, parentNod
                             //TODO:FIXME:HACK
                             optInfo = this.getSchema(optInfo['$ref']);
                         }
-                        var optName = optInfo['name'];
-                        var optText = null;
-                        //TODO: More name validation
-                        if (!optName) {
-                            optName = 'schema-' + this._generateFieldId();
-                            optText = optInfo['type']; //TODO: Check if already used
-                        } else {
-                            optText = optName;
-                        }
-                        this.innerSchemas[fieldName + ':' + optName] = optInfo;
                         var optType = optInfo['type'];
                         //TODO: Check the type, it must be string and the value must be primitive
                         //TODO: Check the schema, it must have name property and the name must be 
                         // unique among other types in the same list (or one overwrites others).
+                        var optText = optInfo['name'] || optType;
+                        var optSchemaName = 'schema-' + this._generateFieldId();
+                        this.innerSchemas[optSchemaName] = optInfo;
                         var optN = $('<option>' + optText + '</option>');
                         optN.attr('value', optType);
-                        optN.attr('data-schema-name', optName);
+                        optN.attr('data-schema-name', optSchemaName);
                         typeOptions.append(optN);
                     } else {
                         console.error("Error: invalid type in type list");
@@ -862,8 +834,10 @@ onde.Onde.prototype.onAddObjectProperty = function (handle) {
         // The last possible place to get the name of the schema
         schemaName = handle.attr('data-schema-name');
     }
-    // Get the schema
-    fieldInfo = this.innerSchemas[schemaName ? namespace + ':' + schemaName : namespace];
+    if (schemaName) {
+        // Get the schema
+        fieldInfo = this.innerSchemas[schemaName];
+    }
     if (!fieldInfo) {
         // No schema found, build it
         fieldInfo = { type: ftype, _deletable: true };
@@ -912,8 +886,10 @@ onde.Onde.prototype.onAddListItem = function (handle) {
         // The last possible place to get the name of the schema
         schemaName = handle.attr('data-schema-name');
     }
-    // Get the schema
-    fieldInfo = this.innerSchemas[schemaName ? namespace + ':' + schemaName : namespace];
+    if (schemaName) {
+        // Get the schema
+        fieldInfo = this.innerSchemas[schemaName];
+    }
     if (!fieldInfo) {
         // No schema found, build it
         fieldInfo = { type: ftype };
