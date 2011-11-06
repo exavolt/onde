@@ -335,37 +335,7 @@ onde.Onde.prototype.renderObject = function (schema, parentNode, namespace, data
             addClass('property-add');
         addBtn.attr('data-field-id', fieldValueId).
             attr('data-object-namespace', namespace);
-        if (propertyTypes.length == 1) {
-            var optInfo = propertyTypes[0];
-            if (typeof optInfo == 'string') {
-                // Option is provided as simple string
-                addBtn.attr('data-object-type', optInfo);
-            } else if (typeof optInfo == 'object') {
-                if (optInfo instanceof Array) {
-                    console.error("InternalError: Type list is not supported");
-                } else {
-                    if ('$ref' in optInfo) {
-                        // Replace the option info with the referenced schema
-                        optInfo = this.getSchema(optInfo['$ref']);
-                        if (!optInfo) {
-                            console.error("SchemaError: Could not resolve referenced schema");
-                        }
-                    }
-                    if (optInfo) {
-                        var optType = optInfo['type'];
-                        //TODO: Check the type, it must be string and the value must be primitive
-                        var optText = optInfo['name'] || optType;
-                        var optSchemaName = 'schema-' + this._generateFieldId();
-                        this.innerSchemas[optSchemaName] = optInfo;
-                        addBtn.attr('data-object-type', optType).
-                            attr('data-schema-name', optSchemaName);
-                    }
-                }
-            }
-        } else {
-            // Render type list as type selector
-            inner.append(this.renderTypeSelector(propertyTypes, fieldValueId));
-        }
+        this.renderEditBarContent(propertyTypes, fieldValueId, inner, addBtn);
         inner.append(' ').append(addBtn);
         editBar.append(inner);
         parentNode.append(editBar);
@@ -412,6 +382,39 @@ onde.Onde.prototype.renderEnumField = function (fieldName, fieldInfo, valueData)
     }
     return fieldNode;
 };
+onde.Onde.prototype.renderEditBarContent = function (typeList, fieldValueId, baseNode, controlNode) {
+    if (typeList.length == 1) {
+        var optInfo = typeList[0];
+        if (typeof optInfo == 'string') {
+            // Option is provided as simple string
+            controlNode.attr('data-object-type', optInfo);
+        } else if (typeof optInfo == 'object') {
+            if (optInfo instanceof Array) {
+                console.error("InternalError: Type list is not supported");
+            } else {
+                if ('$ref' in optInfo) {
+                    // Replace the option info with the referenced schema
+                    optInfo = this.getSchema(optInfo['$ref']);
+                    if (!optInfo) {
+                        console.error("SchemaError: Could not resolve referenced schema");
+                    }
+                }
+                if (optInfo) {
+                    var optType = optInfo['type'];
+                    //TODO: Check the type, it must be string and the value must be primitive
+                    var optText = optInfo['name'] || optType;
+                    var optSchemaName = 'schema-' + this._generateFieldId();
+                    this.innerSchemas[optSchemaName] = optInfo;
+                    controlNode.attr('data-object-type', optType).
+                        attr('data-schema-name', optSchemaName);
+                }
+            }
+        }
+    } else {
+        // Render type list as type selector
+        baseNode.append(this.renderTypeSelector(typeList, fieldValueId));
+    }
+}
 onde.Onde.prototype.renderTypeSelector = function (typeList, fieldValueId) {
     // Renders type selector from type list.
     // This selector is for field (item or property) value is not restricted into one particular type.
@@ -641,37 +644,7 @@ onde.Onde.prototype.renderFieldValue = function (fieldName, fieldInfo, parentNod
         addBtn.attr('data-field-id', fieldValueId).
             attr('data-object-namespace', fieldName).
             attr('data-last-index', lastIndex);
-        if (itemTypes.length == 1) {
-            var optInfo = itemTypes[0];
-            if (typeof optInfo == 'string') {
-                // Option is provided as simple string
-                addBtn.attr('data-object-type', optInfo);
-            } else if (typeof optInfo == 'object') {
-                if (optInfo instanceof Array) {
-                    console.error("TODO: Array type is not supported");
-                } else {
-                    if ('$ref' in optInfo) {
-                        // Replace the option info with the referenced schema
-                        optInfo = this.getSchema(optInfo['$ref']);
-                        if (!optInfo) {
-                            console.error("SchemaError: Could not resolve referenced schema");
-                        }
-                    }
-                    if (optInfo) {
-                        var optType = optInfo['type'];
-                        //TODO: Check the type, it must be string and the value must be primitive
-                        var optText = optInfo['name'] || optType;
-                        var optSchemaName = 'schema-' + this._generateFieldId();
-                        this.innerSchemas[optSchemaName] = optInfo;
-                        addBtn.attr('data-object-type', optType).
-                            attr('data-schema-name', optSchemaName);
-                    }
-                }
-            }
-        } else {
-            // Render type list as type selector
-            inner.append(this.renderTypeSelector(itemTypes, fieldValueId));
-        }
+        this.renderEditBarContent(itemTypes, fieldValueId, inner, addBtn);
         inner.append(' ').append(addBtn);
         editBar.append(inner);
         parentNode.append(editBar);
