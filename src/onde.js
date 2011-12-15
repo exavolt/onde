@@ -143,7 +143,7 @@ onde.Onde = function (element, schema, documentInst, opts) {
         evt.preventDefault();
         _inst.onFieldTypeChanged($(this));
     });
-    this.element.find('.main').hide();
+    this.element.find('.onde-panel').hide();
 };
 
 onde.Onde.prototype.render = function (schema, data, opts) {
@@ -152,7 +152,7 @@ onde.Onde.prototype.render = function (schema, data, opts) {
         //CHECK: Bail out or freestyle object?
     }
     this.documentInstance = data;
-    var panel = this.element.find('.main');
+    var panel = this.element.find('.onde-panel');
     panel.empty();
     panel.hide();
     this.instanceId = this._generateFieldId();

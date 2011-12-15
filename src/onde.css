@@ -5,33 +5,33 @@ html, td {
     line-height: 120%;
 }
 
-.onde-form input[type=text],
-.onde-form textarea {
+.onde-panel input[type=text],
+.onde-panel textarea {
     border: none;
     margin: 0;
     padding: 2px 5px;
     border: 1px solid;
     border-color: #848484 #c1c1c1 #e1e1e1;
 }
-.onde-form select {
+.onde-panel select {
     padding: 2px 2px 2px 5px;
     border: 1px solid;
     border-color: #848484 #c1c1c1 #e1e1e1;
     background-color: #ffffff;
 }
 
-.onde-form a {
+.onde-panel a {
 /*    color: #00970b; */
     color: #999;
 }
-.onde-form .main {
+.onde-panel {
 /*    background-color: #e0e0e0;
     padding: 1px; */
     border-bottom: 1px solid #d9d9d9;
     border-right: 1px solid #d9d9d9;
 }
-.onde-form .field .value input[type=text].value-input,
-.onde-form .field .value textarea.value-input {
+.onde-panel .field .value input[type=text].value-input,
+.onde-panel .field .value textarea.value-input {
 /*    box-sizing: border-box; */
     width: 24em;
     border: none;
@@ -41,27 +41,27 @@ html, td {
     border-color: #848484 #c1c1c1 #e1e1e1;
 /*    font-size: 1.17em; */
 }
-.onde-form .field .value textarea.value-input {
+.onde-panel .field .value textarea.value-input {
     height: 2.5em;
     vertical-align: top;
 }
-.onde-form .field.number .value input[type=text].value-input,
-.onde-form .field.integer .value input[type=text].value-input {
+.onde-panel .field.number .value input[type=text].value-input,
+.onde-panel .field.integer .value input[type=text].value-input {
     font-family: Courier, "Courier New", monospace;
     width: 8em;
 }
-.onde-form .field.object .value,
-.onde-form .field.array .value {
+.onde-panel .field.object .value,
+.onde-panel .field.array .value {
     color: #666;
 }
-.onde-form .field-name {
+.onde-panel .field-name {
     padding: 0 16px;
     display: inline-block;
     min-width: 80px;
     /*TODO: Vertical align */
     font-weight: bold;
 }
-.onde-form .field-name.collapsible {
+.onde-panel .field-name.collapsible {
     background-image: url(treeDownTriangleBlack.png);
     background-repeat: no-repeat;
     background-position: 5px 8px;
@@ -74,40 +74,40 @@ html, td {
     min-width: 0;
     border-bottom: 1px solid #e6e6e6;
 }
-.onde-form .field-name.array-index {
+.onde-panel .field-name.array-index {
 /*    min-width: 10px; */
     min-width: 23px;
     padding-right: 0;
 }
-.onde-form .field-name.array-index.collapsible {
+.onde-panel .field-name.array-index.collapsible {
 /*    min-width: 80px; */
 }
-.onde-form .field-name.collapsible.collapsed {
+.onde-panel .field-name.collapsible.collapsed {
     background-image: url(treeRightTriangleBlack.png);
 }
-.onde-form input[type=text].field-key-input {
+.onde-panel input[type=text].field-key-input {
 	width: auto;
 }
-.onde-form ul,
-.onde-form ol {
+.onde-panel ul,
+.onde-panel ol {
 /*    list-style: none; */
     margin: 0;
     padding: 0;
 /*    border-bottom: 1px solid #d9d9d9; */
     background-color: #f3f3f3;
 }
-.onde-form label.field-name { color: #333; background-color: #fff;/* border-top-left-radius: 4px; */}
-.onde-form label.field-name.collapsible { display: block !important; margin-bottom: 2px; }
-.onde-form ul {
+.onde-panel label.field-name { color: #333; background-color: #fff;/* border-top-left-radius: 4px; */}
+.onde-panel label.field-name.collapsible { display: block !important; margin-bottom: 2px; }
+.onde-panel ul {
     list-style: none;
 }
-.onde-form ol {
+.onde-panel ol {
 /*    list-style-position: inside; */
 }
-.onde-form ol li.array-item {
+.onde-panel ol li.array-item {
 /*    padding-left: 20px; */
 }
-.onde-form li.field {
+.onde-panel li.field {
     background-color: #fff;
     border-left: 1px solid #d9d9d9;
 /*    background-color: #f3f3f3; */
@@ -118,12 +118,12 @@ html, td {
     padding-bottom: 3px;
 /*    border-top-left-radius: 4px; */
 }
-.onde-form li ul,
-.onde-form li ol,
-.onde-form li div.edit-bar {
+.onde-panel li ul,
+.onde-panel li ol,
+.onde-panel li div.edit-bar {
     padding-left: 39px;
 }
-.onde-form li div.edit-bar {
+.onde-panel li div.edit-bar {
     margin: 1px 0 0 39px;
     padding: 2px 7px;
     color: #999;
@@ -132,35 +132,35 @@ html, td {
     border-left: 1px solid #d9d9d9;
     background-color: #f7f7f7;
 }
-.onde-form li {
+.onde-panel li {
 }
-.onde-form li.field.object,
-.onde-form li.field.array {
+.onde-panel li.field.object,
+.onde-panel li.field.array {
     background: none;
     padding-top: 0;
     padding-bottom: 0;
 }
 
 
-.onde-form li ul.inline {
+.onde-panel li ul.inline {
     margin: 0;
     display: inline-block;
     padding-left: 0;
 }
-.onde-form small.description {
+.onde-panel small.description {
     margin-left: 30px;
     margin-right: 10px;
     color: #999;
     display: inline-block;
     font-weight: normal;
 }
-.onde-form .inline li {
+.onde-panel .inline li {
     display: inline;
 }
-.onde-form .inline li .field-name {
+.onde-panel .inline li .field-name {
     text-align: right;
 }
-.onde-form button.field-add {
+.onde-panel button.field-add {
     /*TODO: cross-browser */
   -webkit-border-radius: 2px;
   -moz-border-radius: 2px;
@@ -179,20 +179,20 @@ html, td {
   min-width: 4em;
   padding: 2px 12px 2px 12px;;
 }
-.onde-form button.field-add:hover {
+.onde-panel button.field-add:hover {
   -webkit-box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.2);
   -moz-box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.2);
   background-color: #ffffff;
   border-color: #999;
   color: #222;
 }
-.onde-form button.field-add:active {
+.onde-panel button.field-add:active {
   -webkit-box-shadow: inset 0px 1px 3px rgba(0, 0, 0, 0.2);
   -moz-box-shadow: inset 0px 1px 3px rgba(0, 0, 0, 0.2);
   background-color: #ebebeb;
   color: #333;
 }
-.onde-form button.field-delete {
+.onde-panel button.field-delete {
     border: none;
     outline: none;
     margin: 0;
@@ -208,12 +208,12 @@ html, td {
     background-image: url(delete.png);
 /*    padding-left: 10px; */
 }
-.onde-form button.field-delete:hover {
+.onde-panel button.field-delete:hover {
 /*    color: #e70000; */
     color: transparent;
     background-position: 32px 0;
 }
-.onde-form button.field-delete:active {
+.onde-panel button.field-delete:active {
     background-position: 16px 0;
 }
 

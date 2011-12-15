@@ -17,13 +17,13 @@
 </form>
 
 <h2>Data Input</h2>
-<form id="entry-form" class="onde-form" method="post">
-<p class="placeholder">Enter the schema URL into the above form.</p>
-<div class="main">
-</div>
-<p>
-    <button type="submit" name="submit" value="dump_json">Get JSON</button>
-</p>
+<form id="entry-form" method="post">
+  <!-- Our placeholder element. Displayed before and when rendering the form. -->
+  <p class="placeholder">Enter the schema URL into the above form.</p>
+  <!-- The element where the generated form goes to. -->
+  <div class="onde-panel"></div>
+  <!-- The submit button. -->
+  <p><button type="submit" name="submit" value="dump_json">Get JSON</button></p>
 </form>
 
 <script type="application/javascript" src="jquery-1.6.3.min.js"></script>
@@ -46,8 +46,8 @@ $(document).ready(function () {
     
     var schemaURL = getHashParameterByName('schema');
     var dataURL = getHashParameterByName('data');
-    var ondeElement = $('#entry-form');
-    var jform = new onde.Onde(ondeElement);
+    var ondeForm = $('#entry-form');
+    var jform = new onde.Onde(ondeForm);
     function loadForm() {
         if (!schemaURL) {
             return;
@@ -55,30 +55,31 @@ $(document).ready(function () {
         $.getJSON(schemaURL, function (schema) {
             if (dataURL) {
                 $.getJSON(dataURL, function (data) {
-                    ondeElement.find('.placeholder').hide();
+                    ondeForm.find('.placeholder').hide();
                     jform.render(schema, data, {
                         schemaURL: schemaURL,
                         dataURL: dataURL,
                         renderFinished: function (element) {
-                            ondeElement.find('.placeholder').fadeOut('fast', function () {
+                            ondeForm.find('.placeholder').fadeOut('fast', function () {
                                 element.fadeIn('fast');
                                 });
                             }
                         });
                 });
             } else {
-                ondeElement.find('.placeholder').hide();
+                ondeForm.find('.placeholder').hide();
                 jform.render(schema, null, {
                     schemaURL: schemaURL,
                     renderFinished: function (element) {
-                        ondeElement.find('.placeholder').fadeOut('fast', function () {
+                        ondeForm.find('.placeholder').fadeOut('fast', function () {
                             element.fadeIn('fast');
                             });
                         }
                     });
             }
         });
-        ondeElement.submit(function (evt) {
+        // Listen to form submit
+        ondeForm.submit(function (evt) {
             evt.preventDefault();
             var outData = jform.getData();
             if (outData.errorCount) {
