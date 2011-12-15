@@ -88,6 +88,7 @@ onde.PRIMITIVE_TYPES = ['string', 'number', 'integer', 'boolean', 'array', 'obje
 
 onde.Onde = function (element, schema, documentInst, opts) {
     var _inst = this;
+    //this.options = opts;
     this.externalSchemas = {}; // A hash of cached external schemas. The key is the full URL of the schema.
     this.innerSchemas = {};
     this.fieldNamespaceSeparator = '.';
@@ -142,35 +143,10 @@ onde.Onde = function (element, schema, documentInst, opts) {
         evt.preventDefault();
         _inst.onFieldTypeChanged($(this));
     });
-    this.element.live('submit', function (evt) {
-        evt.preventDefault();
-        var formData = {};
-        var fields = $(this).serializeArray();
-        for (var i = 0; i < fields.length; i++) {
-            formData[fields[i].name] = fields[i].value;
-        }
-        if (formData.next) {
-            delete formData.next;
-        }
-        var outData = _inst._buildObject(_inst.documentSchema, _inst.instanceId, formData);
-        if (outData.errorCount) {
-            //TODO: Show message (use content) and cancel submit
-            alert("Error submitting data. Number of errors: " + outData.errorCount);
-            console.log(outData);
-        } else {
-            //TODO: Submit the result
-            //console.log(outData.data);
-            $('#json-output').text(JSON.stringify(outData.data, null, "  "));
-            $.post("http://localhost:29017/test/test/_insert", { data: JSON.stringify(outData.data) }, null, 'json');
-        }
-        return false;
-    });
-    this.element.find('.placeholder').show();
     this.element.find('.main').hide();
-    this.element.find('.actions').hide();
 };
 
-onde.Onde.prototype.render = function (schema, data) {
+onde.Onde.prototype.render = function (schema, data, opts) {
     this.documentSchema = schema || this.documentSchema;
     if (!this.documentSchema) {
         //CHECK: Bail out or freestyle object?
@@ -181,11 +157,12 @@ onde.Onde.prototype.render = function (schema, data) {
     panel.hide();
     this.instanceId = this._generateFieldId();
     this.renderObject(this.documentSchema, panel, this.instanceId, this.documentInstance);
-    panel.fadeIn();
-    
-    this.element.find('.actions').fadeIn();
-    this.element.find('.placeholder').hide();
-//    this.element.find('.main').append('<p><button type="submit" name="submit" value="dump_json">Get JSON</button></p>');
+    //this.element.append('<p><button type="submit" name="submit">Submit</button></p>');
+    if (opts.renderFinished) {
+        opts.renderFinished(panel);
+    } else {
+        panel.fadeIn();
+    }
 };
 
 
@@ -1093,4 +1070,16 @@ onde.Onde.prototype._buildObject = function (schema, path, formData) {
         }
     }
     return result;
+};
+
+onde.Onde.prototype.getData = function () {
+    var formData = {};
+    var fields = this.element.serializeArray();
+    for (var i = 0; i < fields.length; i++) {
+        formData[fields[i].name] = fields[i].value;
+    }
+    if (formData.next) {
+        delete formData.next;
+    }
+    return this._buildObject(this.documentSchema, this.instanceId, formData);
 };
