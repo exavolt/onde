@@ -24,9 +24,9 @@
 <script type="application/javascript">
 $(document).ready(function () {
 	var data = null;
+	var jform = new onde.Onde($("#entry-form"));
 	$.getJSON("schemas/onde-test.json", function (schema) {
 		$.getJSON("onde-test-data.json", function (data) {
-			var jform = new onde.Onde("entry-form");
 			jform.render(schema, data);
 		});
 	});

@@ -45,7 +45,7 @@ $(document).ready(function () {
     
     var schemaURL = getHashParameterByName('schema');
     var dataURL = getHashParameterByName('data');
-	var jform = new onde.Onde("entry-form");
+	var jform = new onde.Onde($("#entry-form")[0]);
 	function loadForm() {
 	    if (!schemaURL) {
 	        return;

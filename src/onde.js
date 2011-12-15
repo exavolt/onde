@@ -86,27 +86,27 @@ var onde = (function () {
 onde.PRIMITIVE_TYPES = ['string', 'number', 'integer', 'boolean', 'array', 'object'];
 //onde.simpleTypes = ['string', 'number', 'integer', 'boolean', 'object', 'array', 'null', 'any'];
 
-onde.Onde = function (formId, schema, documentInst, opts) {
+onde.Onde = function (element, schema, documentInst, opts) {
     var _inst = this;
     this.externalSchemas = {}; // A hash of cached external schemas. The key is the full URL of the schema.
     this.innerSchemas = {};
     this.fieldNamespaceSeparator = '.';
     this.fieldNamespaceSeparatorRegex = /\./g;
-    this.formId = formId;
+    this.element = $(element);
     this.documentSchema = schema;
     this.documentInstance = documentInst;
     // Object property adder
-    $('#' + formId + ' .property-add').live('click', function (evt) {
+    this.element.find('.property-add').live('click', function (evt) {
         evt.preventDefault();
         _inst.onAddObjectProperty($(this));
     });
     // Array item adder
-    $('#' + formId + ' .item-add').live('click', function (evt) {
+    this.element.find('.item-add').live('click', function (evt) {
         evt.preventDefault();
         _inst.onAddListItem($(this));
     });
     // Collapsible field (object and array)
-    $('#' + formId + ' .collapsible').live('click', function (evt) {
+    this.element.find('.collapsible').live('click', function (evt) {
         var fieldId = $(this).attr('data-field-id');
         if (fieldId && !$('#' + fieldId).hasClass('inline')) {
             $('#' + fieldId).slideToggle('fast');
@@ -121,10 +121,10 @@ onde.Onde = function (formId, schema, documentInst, opts) {
         }
     });
     // Field deleter (property and item)
-    $('#' + formId + ' .field-delete').live('click', function (evt) {
+    this.element.find('.field-delete').live('click', function (evt) {
         evt.preventDefault();
         evt.stopPropagation(); //CHECK: Only if collapsible
-        console.log('#' + $(this).attr('data-id'));
+        //console.log('#' + $(this).attr('data-id'));
         $('#' + $(this).attr('data-id')).fadeOut('fast', function () {
             // Change the item's and siblings' classes accordingly
             //FIXME: This is unstable
@@ -138,11 +138,11 @@ onde.Onde = function (formId, schema, documentInst, opts) {
         });
     });
     // Type selector
-    $('#' + formId + ' .field-type-select').live('change', function (evt) {
+    this.element.find('.field-type-select').live('change', function (evt) {
         evt.preventDefault();
         _inst.onFieldTypeChanged($(this));
     });
-    $('#' + formId).live('submit', function (evt) {
+    this.element.live('submit', function (evt) {
         evt.preventDefault();
         var formData = {};
         var fields = $(this).serializeArray();
@@ -152,7 +152,7 @@ onde.Onde = function (formId, schema, documentInst, opts) {
         if (formData.next) {
             delete formData.next;
         }
-        var outData = _inst._buildObject(_inst.documentSchema, _inst.formId, formData);
+        var outData = _inst._buildObject(_inst.documentSchema, _inst.instanceId, formData);
         if (outData.errorCount) {
             //TODO: Show message (use content) and cancel submit
             alert("Error submitting data. Number of errors: " + outData.errorCount);
@@ -165,9 +165,9 @@ onde.Onde = function (formId, schema, documentInst, opts) {
         }
         return false;
     });
-    $('#' + this.formId + ' .placeholder').show();
-    $('#' + this.formId + ' .main').hide();
-    $('#' + this.formId + ' .actions').hide();
+    this.element.find('.placeholder').show();
+    this.element.find('.main').hide();
+    this.element.find('.actions').hide();
 };
 
 onde.Onde.prototype.render = function (schema, data) {
@@ -176,15 +176,16 @@ onde.Onde.prototype.render = function (schema, data) {
         //CHECK: Bail out or freestyle object?
     }
     this.documentInstance = data;
-    var panel = $('#' + this.formId + ' .main');
+    var panel = this.element.find('.main');
     panel.empty();
     panel.hide();
-    this.renderObject(this.documentSchema, panel, this.formId, this.documentInstance);
+    this.instanceId = this._generateFieldId();
+    this.renderObject(this.documentSchema, panel, this.instanceId, this.documentInstance);
     panel.fadeIn();
     
-    $('#' + this.formId + ' .actions').fadeIn();
-    $('#' + this.formId + ' .placeholder').hide();
-//    $('#' + this.formId + ' .main').append('<p><button type="submit" name="submit" value="dump_json">Get JSON</button></p>');
+    this.element.find('.actions').fadeIn();
+    this.element.find('.placeholder').hide();
+//    this.element.find('.main').append('<p><button type="submit" name="submit" value="dump_json">Get JSON</button></p>');
 };
 
 
