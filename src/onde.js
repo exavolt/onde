@@ -111,7 +111,7 @@ onde.Onde = function (formElement, schema, documentInst, opts) {
         _inst.onAddListItem($(this));
     });
     // Collapsible field (object and array)
-    this.formElement.find('.collapsible').live('click', function (evt) {
+    this.formElement.find('.collapser').live('click', function (evt) {
         var fieldId = $(this).attr('data-field-id');
         if (fieldId && !$('#' + fieldId).hasClass('inline')) {
             $('#' + fieldId).slideToggle('fast');
@@ -670,9 +670,16 @@ onde.Onde.prototype.renderObjectPropertyField = function (namespace, baseId, fie
     //rowN.addClass('property');
     //rowN.addClass(baseId + '-property');
     var labelN = $('<label for="' + fieldValueId + '"></label>');
+    rowN.append(labelN);
     labelN.addClass('field-name');
+    var valN = null;
     if ((fieldType == 'object' && fieldInfo.display != 'inline') || fieldType == 'array') {
-        labelN.addClass('collapsible');
+        rowN.addClass('collapsible');
+        labelN.addClass('collapser');
+        valN = $('<div class="collapsible-panel"></div>');
+        rowN.append(valN);
+    } else {
+        valN = rowN;
     }
     // Use the label if provided. Otherwise, use property name.
     var labelText = fieldInfo.label || propName;
@@ -693,28 +700,27 @@ onde.Onde.prototype.renderObjectPropertyField = function (namespace, baseId, fie
     if (collectionType) {
         labelN.append(actionMenu);
     }
-    if (labelN.hasClass('collapsible')) {
+    if (labelN.hasClass('collapser')) {
         // Add description to label if the field is collapsible
         var fieldDesc = fieldInfo.description || fieldInfo.title;
         if (fieldDesc) {
             labelN.append(' <small class="description"><em>' + fieldDesc + '</small></em>');
         }
     }
-    rowN.append(labelN);
     if (fieldInfo['$ref']) {
         //TODO: Deal with schema reference
-        rowN.append('<span class="value">' + fieldInfo['$ref'] + '</span>');
+        valN.append('<span class="value">' + fieldInfo['$ref'] + '</span>');
     } else {
         if (valueData && namespace === '' && this.documentSchema.primaryProperty == propName) {
             // Primary property is not editable
-            rowN.append('<span class="value"><strong>' + valueData + '</strong></span>');
-            rowN.append('<input type="hidden" name="' + fieldName + '" value="' + valueData + '" />');
+            valN.append('<span class="value"><strong>' + valueData + '</strong></span>');
+            valN.append('<input type="hidden" name="' + fieldName + '" value="' + valueData + '" />');
         } else {
-            this.renderFieldValue(fieldName, fieldInfo, rowN, valueData);
+            this.renderFieldValue(fieldName, fieldInfo, valN, valueData);
             labelN.attr('data-field-id', fieldValueId);
-            rowN.attr('id', 'field-' + this._fieldNameToID(fieldName));
+            valN.attr('id', 'field-' + this._fieldNameToID(fieldName));
             if (!collectionType) {
-                rowN.append(actionMenu);
+                valN.append(actionMenu);
             }
         }
     }
@@ -737,14 +743,19 @@ onde.Onde.prototype.renderListItemField = function (namespace, fieldInfo, index,
     rowN.attr('id', 'field-' + this._fieldNameToID(fieldName));
     var deleterShown = false;
     var labelN = null;
+    var valN = rowN;
     if (fieldInfo.type == 'object' && fieldInfo.display == 'inline') {
     } else {
         var labelN = $('<label for="' + fieldValueId + '"></label>');
+        rowN.append(labelN);
         labelN.addClass('field-name');
         labelN.addClass('array-index');
         labelN.append('&nbsp;');
         if ((fieldInfo.type == 'object' && fieldInfo.display != 'inline') || fieldInfo.type == 'array') {
-            labelN.addClass('collapsible');
+            rowN.addClass('collapsible');
+            labelN.addClass('collapser');
+            valN = $('<div class="collapsible-panel"></div>');
+            rowN.append(valN);
         }
         //labelN.append(idat + ': ');
         labelN.append('&nbsp; ');
@@ -753,14 +764,13 @@ onde.Onde.prototype.renderListItemField = function (namespace, fieldInfo, index,
             labelN.append('<small> <button class="field-delete" data-id="field-' + this._fieldNameToID(fieldName) + '" title="Delete item">delete</button> <small>');
             deleterShown = true;
         }
-        rowN.append(labelN);
     }
     if (labelN) {
         labelN.attr('data-field-id', fieldValueId);
     }
-    this.renderFieldValue(fieldName, fieldInfo, rowN, valueData);
+    this.renderFieldValue(fieldName, fieldInfo, valN, valueData);
     if (!deleterShown) {
-        rowN.append('<small> <button class="field-delete" data-id="field-' + this._fieldNameToID(fieldName) + '" title="Delete item">delete</button> <small>');
+        valN.append('<small> <button class="field-delete" data-id="field-' + this._fieldNameToID(fieldName) + '" title="Delete item">delete</button> <small>');
     }
     return rowN;
 };

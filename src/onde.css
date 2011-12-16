@@ -61,7 +61,12 @@ html, td {
     /*TODO: Vertical align */
     font-weight: bold;
 }
-.onde-panel .field-name.collapsible {
+.onde-panel .collapsible {
+}
+.onde-panel .collapsible-panel {
+    padding-bottom: 3px;
+}
+.onde-panel .field-name.collapser {
     background-image: url(treeDownTriangleBlack.png);
     background-repeat: no-repeat;
     background-position: 5px 8px;
@@ -80,10 +85,10 @@ html, td {
     min-width: 23px;
     padding-right: 0;
 }
-.onde-panel .field-name.array-index.collapsible {
+.onde-panel .field-name.array-index.collapser {
 /*    min-width: 80px; */
 }
-.onde-panel .field-name.collapsible.collapsed {
+.onde-panel .field-name.collapser.collapsed {
     background-image: url(treeRightTriangleBlack.png);
     border-bottom: none;
     margin-bottom: 0;
@@ -96,11 +101,11 @@ html, td {
 /*    list-style: none; */
     margin: 0;
     padding: 0;
-/*    border-bottom: 1px solid #d9d9d9; */
+    border-bottom: 1px solid #d9d9d9;
     background-color: #f3f3f3;
 }
 .onde-panel label.field-name { color: #333; background-color: #fff;/* border-top-left-radius: 4px; */}
-.onde-panel label.field-name.collapsible { display: block !important;/* margin-bottom: 2px; */}
+.onde-panel label.field-name.collapser { display: block !important;/* margin-bottom: 2px; */}
 .onde-panel ul {
     list-style: none;
 }
@@ -124,15 +129,16 @@ html, td {
 .onde-panel li ul,
 .onde-panel li ol,
 .onde-panel li div.edit-bar {
-    padding-left: 39px;
+    margin-left: 39px;
 }
 .onde-panel li div.edit-bar {
-    margin: 1px 0 0 39px;
-    padding: 2px 7px;
+    margin: 0 0 0 39px;
+    padding: 1px 7px 3px;
     color: #999;
-/*    border-top: 1px solid #d9d9d9; */
-    border-top: 1px solid #e3e3e3;
+/*    border-top: 1px solid #d9d9d9;
+    border-top: 1px solid #e3e3e3; */
     border-left: 1px solid #d9d9d9;
+    border-bottom: 1px solid #d9d9d9;
     background-color: #f7f7f7;
 }
 .onde-panel li {
