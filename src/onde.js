@@ -1,5 +1,6 @@
 
 
+//BUG: Wrong ID for delete
 //BUG: Nameless schema
 //BUG: String default
 //BUG: Handling bad schema for object
@@ -112,17 +113,20 @@ onde.Onde = function (formElement, schema, documentInst, opts) {
     });
     // Collapsible field (object and array)
     this.formElement.find('.collapser').live('click', function (evt) {
-        var fieldId = $(this).attr('data-field-id');
-        if (fieldId && !$('#' + fieldId).hasClass('inline')) {
-            $('#' + fieldId).slideToggle('fast');
-/*            if (jQuery.fn.fadeToggle) {
-                // jQuery 1.4.4
-                $('#' + fieldId + '-edit-bar').fadeToggle('fast');
-            } else { */
-                $('#' + fieldId + '-edit-bar').slideToggle('fast');
-/*            } */
-            $(this).toggleClass('collapsed');
-            //TODO: Display indicator (and/or summary) when collapsed
+        var collapser = $(this);
+        var fieldId = collapser.attr('data-field-value-id');
+        //TODO: Check the field. It must not be inline.
+        if (fieldId) {
+            // Check the state first (for smoother animations)
+            if (collapser.hasClass('collapsed')) {
+                collapser.removeClass('collapsed');
+                $('#' + fieldId).slideDown('fast');
+            } else {
+                //TODO: Display indicator (and/or summary) when collapsed
+                $('#' + fieldId).slideUp('fast', function () {
+                    collapser.addClass('collapsed');
+                });
+            }
         }
     });
     // Field deleter (property and item)
@@ -677,6 +681,7 @@ onde.Onde.prototype.renderObjectPropertyField = function (namespace, baseId, fie
         rowN.addClass('collapsible');
         labelN.addClass('collapser');
         valN = $('<div class="collapsible-panel"></div>');
+        valN.addClass('fieldvalue-container');
         rowN.append(valN);
     } else {
         valN = rowN;
@@ -717,7 +722,7 @@ onde.Onde.prototype.renderObjectPropertyField = function (namespace, baseId, fie
             valN.append('<input type="hidden" name="' + fieldName + '" value="' + valueData + '" />');
         } else {
             this.renderFieldValue(fieldName, fieldInfo, valN, valueData);
-            labelN.attr('data-field-id', fieldValueId);
+            labelN.attr('data-field-value-id', 'field-' + this._fieldNameToID(fieldName));
             valN.attr('id', 'field-' + this._fieldNameToID(fieldName));
             if (!collectionType) {
                 valN.append(actionMenu);
@@ -740,7 +745,6 @@ onde.Onde.prototype.renderListItemField = function (namespace, fieldInfo, index,
         collectionType = (fieldInfo.type == 'object' || fieldInfo.type == 'array');
     }
     rowN.addClass('array-item');
-    rowN.attr('id', 'field-' + this._fieldNameToID(fieldName));
     var deleterShown = false;
     var labelN = null;
     var valN = rowN;
@@ -755,6 +759,8 @@ onde.Onde.prototype.renderListItemField = function (namespace, fieldInfo, index,
             rowN.addClass('collapsible');
             labelN.addClass('collapser');
             valN = $('<div class="collapsible-panel"></div>');
+            valN.addClass('fieldvalue-container');
+            valN.attr('id', 'field-' + this._fieldNameToID(fieldName));
             rowN.append(valN);
         }
         //labelN.append(idat + ': ');
@@ -765,8 +771,11 @@ onde.Onde.prototype.renderListItemField = function (namespace, fieldInfo, index,
             deleterShown = true;
         }
     }
+    if (!rowN.hasClass('collapsible')) {
+        rowN.attr('id', 'field-' + this._fieldNameToID(fieldName));
+    }
     if (labelN) {
-        labelN.attr('data-field-id', fieldValueId);
+        labelN.attr('data-field-value-id', 'field-' + this._fieldNameToID(fieldName));
     }
     this.renderFieldValue(fieldName, fieldInfo, valN, valueData);
     if (!deleterShown) {

@@ -27,6 +27,18 @@
                 "array": { "type": "array" },
                 "object": { "type": "object" }
             }
-        }
+        },
+        "clips": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "display": "inline",
+                "properties": {
+                    "id": { "type": "string" },
+                    "index": { "type": "integer" },
+                    "loop": { "type": "boolean" }
+                    }
+                }
+            }
     }
 }
