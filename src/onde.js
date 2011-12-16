@@ -2,12 +2,13 @@
 
 //BUG: Nameless schema
 //BUG: String default
+//BUG: Handling bad schema for object
 //TODO: Support for readonly
 //TODO: Fix the mess: field value id and field id
-//TODO: Type could be array (!)
+//TODO: Type could be array (!) i.e., union
 //TODO: Check if the property name already exist
 //TODO: Remove the limitations for property name (support all kind of character)
-//TODO: Deal with 'any'
+//TODO: Deal with 'any' (more consistenly)
 //TODO: More consistent IDs
 //TODO: Boolean value consistency
 //TODO: Warning if the data doesn't conform the schema
@@ -26,16 +27,19 @@
 //TODO: Rich class for items / properties: first and last, even and odd
 //TODO: Support for measurement format (i.e.: value - unit compound)
 //TODO: Support for combo requirement (e.g.: length + width + height or height + diameter)
-//TODO: Support for compound (a field consisted of smaller obvious fields). For example measurement field consisted of value field and unit field.
+//TODO: Support for compound (a field consisted of smaller fields).
+// For example measurement field consisted of value field and unit field.
 //TODO: Support for more solid compound: URL or href is defined as field but could be break up to parts.
 //TODO: Enum label (and description)
 //TODO: Allow to replace wordings (e.g.: "Add property:")
+// For "Add item", check that the item's schema has name
 //TODO: Use description as fallback of title (element's title should be only taken from title)
 //TODO: Should support something like: { "type": "object", "properties": { "name": "string" } }. With `name` value is string with all default properties.
 //TODO: Required: any (any field), combo (set of combination)
 //TODO: Automatically add first array item if the item type is singular
 //TODO: (non-)Exclusive enum
 //TODO: Display character counter for string field if the length is constrained
+//TODO: Descriptive enum value. e.g., { "value": "the-real-value", "label": "Displayed text" }
 
 
 /*FIXME: Monkey-patching is not recommended */
@@ -86,28 +90,28 @@ var onde = (function () {
 onde.PRIMITIVE_TYPES = ['string', 'number', 'integer', 'boolean', 'array', 'object'];
 //onde.simpleTypes = ['string', 'number', 'integer', 'boolean', 'object', 'array', 'null', 'any'];
 
-onde.Onde = function (element, schema, documentInst, opts) {
+onde.Onde = function (formElement, schema, documentInst, opts) {
     var _inst = this;
     //this.options = opts;
     this.externalSchemas = {}; // A hash of cached external schemas. The key is the full URL of the schema.
     this.innerSchemas = {};
     this.fieldNamespaceSeparator = '.';
     this.fieldNamespaceSeparatorRegex = /\./g;
-    this.element = $(element);
+    this.formElement = $(formElement);
     this.documentSchema = schema;
     this.documentInstance = documentInst;
     // Object property adder
-    this.element.find('.property-add').live('click', function (evt) {
+    this.formElement.find('.property-add').live('click', function (evt) {
         evt.preventDefault();
         _inst.onAddObjectProperty($(this));
     });
     // Array item adder
-    this.element.find('.item-add').live('click', function (evt) {
+    this.formElement.find('.item-add').live('click', function (evt) {
         evt.preventDefault();
         _inst.onAddListItem($(this));
     });
     // Collapsible field (object and array)
-    this.element.find('.collapsible').live('click', function (evt) {
+    this.formElement.find('.collapsible').live('click', function (evt) {
         var fieldId = $(this).attr('data-field-id');
         if (fieldId && !$('#' + fieldId).hasClass('inline')) {
             $('#' + fieldId).slideToggle('fast');
@@ -122,7 +126,7 @@ onde.Onde = function (element, schema, documentInst, opts) {
         }
     });
     // Field deleter (property and item)
-    this.element.find('.field-delete').live('click', function (evt) {
+    this.formElement.find('.field-delete').live('click', function (evt) {
         evt.preventDefault();
         evt.stopPropagation(); //CHECK: Only if collapsible
         //console.log('#' + $(this).attr('data-id'));
@@ -139,11 +143,11 @@ onde.Onde = function (element, schema, documentInst, opts) {
         });
     });
     // Type selector
-    this.element.find('.field-type-select').live('change', function (evt) {
+    this.formElement.find('.field-type-select').live('change', function (evt) {
         evt.preventDefault();
         _inst.onFieldTypeChanged($(this));
     });
-    this.element.find('.onde-panel').hide();
+    this.formElement.find('.onde-panel').hide();
 };
 
 onde.Onde.prototype.render = function (schema, data, opts) {
@@ -152,12 +156,12 @@ onde.Onde.prototype.render = function (schema, data, opts) {
         //CHECK: Bail out or freestyle object?
     }
     this.documentInstance = data;
-    var panel = this.element.find('.onde-panel');
+    var panel = this.formElement.find('.onde-panel');
     panel.empty();
     panel.hide();
     this.instanceId = this._generateFieldId();
     this.renderObject(this.documentSchema, panel, this.instanceId, this.documentInstance);
-    //this.element.append('<p><button type="submit" name="submit">Submit</button></p>');
+    //this.formElement.append('<p><button type="submit" name="submit">Submit</button></p>');
     if (opts.renderFinished) {
         opts.renderFinished(panel);
     } else {
@@ -690,7 +694,7 @@ onde.Onde.prototype.renderObjectPropertyField = function (namespace, baseId, fie
         labelN.append(actionMenu);
     }
     if (labelN.hasClass('collapsible')) {
-        //TODO: Description here
+        // Add description to label if the field is collapsible
         var fieldDesc = fieldInfo.description || fieldInfo.title;
         if (fieldDesc) {
             labelN.append(' <small class="description"><em>' + fieldDesc + '</small></em>');
@@ -1074,7 +1078,7 @@ onde.Onde.prototype._buildObject = function (schema, path, formData) {
 
 onde.Onde.prototype.getData = function () {
     var formData = {};
-    var fields = this.element.serializeArray();
+    var fields = this.formElement.serializeArray();
     for (var i = 0; i < fields.length; i++) {
         formData[fields[i].name] = fields[i].value;
     }

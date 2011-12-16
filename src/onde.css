@@ -73,6 +73,7 @@ html, td {
 /*    min-width: 180px; */
     min-width: 0;
     border-bottom: 1px solid #e6e6e6;
+    margin-bottom: 2px;
 }
 .onde-panel .field-name.array-index {
 /*    min-width: 10px; */
@@ -84,6 +85,8 @@ html, td {
 }
 .onde-panel .field-name.collapsible.collapsed {
     background-image: url(treeRightTriangleBlack.png);
+    border-bottom: none;
+    margin-bottom: 0;
 }
 .onde-panel input[type=text].field-key-input {
 	width: auto;
@@ -97,7 +100,7 @@ html, td {
     background-color: #f3f3f3;
 }
 .onde-panel label.field-name { color: #333; background-color: #fff;/* border-top-left-radius: 4px; */}
-.onde-panel label.field-name.collapsible { display: block !important; margin-bottom: 2px; }
+.onde-panel label.field-name.collapsible { display: block !important;/* margin-bottom: 2px; */}
 .onde-panel ul {
     list-style: none;
 }
