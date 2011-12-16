@@ -1,0 +1,63 @@
+{
+    "type": "object",
+    "name": "jQuery Plugins Site package.json",
+    "properties": {
+        "name": { "type": "string", "required": true },
+        "version": { "type": "string", "required": true },
+        "title": { "type": "string", "required": true },
+        "author": {
+            "required": true,
+            "type": "object",
+            "name": "person",
+            "properties": {
+                "name": { "type": "string", "required": true },
+                "email": { "type": "string" },
+                "web": { "type": "string" }
+                } 
+            },
+        "licenses": {
+            "type": "array",
+            "required": true,
+            "items": {
+                "type": "object",
+                "properties": {
+                    "type": { "type": "string", "required": true },
+                    "url": { "type": "string" }
+                    }
+                }
+            },
+        "dependencies": {
+            "type": "object",
+            "required": true,
+            "additionalProperties": "string"
+            },
+        "description": {
+            "type": "string",
+            "format": "multiline"
+            },
+        "keywords": {
+            "type": "array",
+            "items": "string"
+            },
+        "homepage": {
+            "type": "string",
+            "format": "url"
+            },
+        "contributors": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "name": "person",
+                "properties": {
+                    "name": { "type": "string", "required": true },
+                    "email": { "type": "string" },
+                    "web": { "type": "string" }
+                    } 
+                }
+            },
+        "files": {
+            "type": "array",
+            "items": { "type": "string", "format": "url.path" }
+            }
+        }
+    }
