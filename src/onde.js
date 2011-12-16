@@ -114,7 +114,7 @@ onde.Onde = function (formElement, schema, documentInst, opts) {
     // Collapsible field (object and array)
     this.formElement.find('.collapser').live('click', function (evt) {
         var collapser = $(this);
-        var fieldId = collapser.attr('data-field-value-id');
+        var fieldId = collapser.attr('data-fieldvalue-container-id');
         //TODO: Check the field. It must not be inline.
         if (fieldId) {
             // Check the state first (for smoother animations)
@@ -312,7 +312,8 @@ onde.Onde.prototype.renderObject = function (schema, parentNode, namespace, data
     }
     // Toolbar if the object can has additional property
     if ('additionalProperties' in schema) {
-        var editBar = $('<div class="edit-bar object" id="' + fieldValueId + '-edit-bar"></div>');
+        var editBar = $('<div class="edit-bar object"></div>');
+        editBar.attr('id', fieldValueId + '-edit-bar');
         var inner = $('<small></small>');
         inner.append('Add property: ');
         inner.append('<input type="text" id="' + fieldValueId + '-key" placeholder="Property name" /> ');
@@ -647,6 +648,7 @@ onde.Onde.prototype.renderObjectPropertyField = function (namespace, baseId, fie
     var fieldType = null;
     var collectionType = false;
     var rowN = $('<li></li>');
+    rowN.attr('id', 'field-' + this._fieldNameToID(fieldName));
     fieldInfo = this._sanitizeFieldInfo(fieldInfo, valueData);
     rowN.addClass('field');
     if (fieldInfo) {
@@ -680,8 +682,10 @@ onde.Onde.prototype.renderObjectPropertyField = function (namespace, baseId, fie
     if ((fieldType == 'object' && fieldInfo.display != 'inline') || fieldType == 'array') {
         rowN.addClass('collapsible');
         labelN.addClass('collapser');
+        labelN.attr('data-fieldvalue-container-id', 'fieldvalue-container-' + this._fieldNameToID(fieldName));
         valN = $('<div class="collapsible-panel"></div>');
         valN.addClass('fieldvalue-container');
+        valN.attr('id', 'fieldvalue-container-' + this._fieldNameToID(fieldName)); //CHECK: Get this from the field renderer?
         rowN.append(valN);
     } else {
         valN = rowN;
@@ -722,8 +726,6 @@ onde.Onde.prototype.renderObjectPropertyField = function (namespace, baseId, fie
             valN.append('<input type="hidden" name="' + fieldName + '" value="' + valueData + '" />');
         } else {
             this.renderFieldValue(fieldName, fieldInfo, valN, valueData);
-            labelN.attr('data-field-value-id', 'field-' + this._fieldNameToID(fieldName));
-            valN.attr('id', 'field-' + this._fieldNameToID(fieldName));
             if (!collectionType) {
                 valN.append(actionMenu);
             }
@@ -738,6 +740,7 @@ onde.Onde.prototype.renderListItemField = function (namespace, fieldInfo, index,
     var fieldValueId = 'fieldvalue-' + this._fieldNameToID(fieldName);
     var collectionType = false;
     var rowN = $('<li></li>');
+    rowN.attr('id', 'field-' + this._fieldNameToID(fieldName));
     fieldInfo = this._sanitizeFieldInfo(fieldInfo, valueData);
     rowN.addClass('field');
     if (typeof fieldInfo.type == 'string') {
@@ -760,7 +763,7 @@ onde.Onde.prototype.renderListItemField = function (namespace, fieldInfo, index,
             labelN.addClass('collapser');
             valN = $('<div class="collapsible-panel"></div>');
             valN.addClass('fieldvalue-container');
-            valN.attr('id', 'field-' + this._fieldNameToID(fieldName));
+            valN.attr('id', 'fieldvalue-container-' + this._fieldNameToID(fieldName));
             rowN.append(valN);
         }
         //labelN.append(idat + ': ');
@@ -771,11 +774,8 @@ onde.Onde.prototype.renderListItemField = function (namespace, fieldInfo, index,
             deleterShown = true;
         }
     }
-    if (!rowN.hasClass('collapsible')) {
-        rowN.attr('id', 'field-' + this._fieldNameToID(fieldName));
-    }
-    if (labelN) {
-        labelN.attr('data-field-value-id', 'field-' + this._fieldNameToID(fieldName));
+    if (rowN.hasClass('collapsible') && labelN) {
+        labelN.attr('data-fieldvalue-container-id', 'fieldvalue-container-' + this._fieldNameToID(fieldName));
     }
     this.renderFieldValue(fieldName, fieldInfo, valN, valueData);
     if (!deleterShown) {
