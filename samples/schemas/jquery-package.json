@@ -1,6 +1,7 @@
 {
     "type": "object",
     "name": "jQuery Plugins Site package.json",
+    "description": "Package manifest file for jQuery plugins.",
     "properties": {
         "name": { "type": "string", "required": true },
         "version": { "type": "string", "required": true },

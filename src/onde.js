@@ -151,7 +151,7 @@ onde.Onde = function (formElement, schema, documentInst, opts) {
         evt.preventDefault();
         _inst.onFieldTypeChanged($(this));
     });
-    this.formElement.find('.onde-panel').hide();
+    //this.formElement.find('.onde-panel').hide();
 };
 
 onde.Onde.prototype.render = function (schema, data, opts) {
@@ -162,14 +162,12 @@ onde.Onde.prototype.render = function (schema, data, opts) {
     this.documentInstance = data;
     var panel = this.formElement.find('.onde-panel');
     panel.empty();
-    panel.hide();
+    //panel.hide();
     this.instanceId = this._generateFieldId();
     this.renderObject(this.documentSchema, panel, this.instanceId, this.documentInstance);
-    //this.formElement.append('<p><button type="submit" name="submit">Submit</button></p>');
+    //panel.show();
     if (opts.renderFinished) {
         opts.renderFinished(panel);
-    } else {
-        panel.fadeIn();
     }
 };
 
@@ -693,10 +691,10 @@ onde.Onde.prototype.renderObjectPropertyField = function (namespace, baseId, fie
     // Use the label if provided. Otherwise, use property name.
     var labelText = fieldInfo.label || propName;
     if (namespace === '' && this.documentSchema.primaryProperty && this.documentSchema.primaryProperty == propName) {
-        labelN.append('<strong>' + labelText + '*: </strong>');
+        labelN.append('<strong>' + labelText + '<span class="required-marker" title="This field is required">*</span>: </strong>');
     } else {
         if (fieldInfo.required) {
-            labelN.append(labelText + '*: ');
+            labelN.append(labelText + '<span class="required-marker" title="This field is required">*</span>: ');
         } else {
             labelN.append(labelText + ': ');
         }

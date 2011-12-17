@@ -93,6 +93,9 @@ html, td {
     border-bottom: none;
     margin-bottom: 0;
 }
+.onde-panel .required-marker {
+    color: #ff3333;
+}
 .onde-panel input[type=text].field-key-input {
 	width: auto;
 }

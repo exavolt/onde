@@ -16,14 +16,13 @@
 <br/><button type="submit" id="schema-load-submit">Load</button></p>
 </form>
 
-<h2>Data Input</h2>
-<form id="entry-form" method="post">
-  <!-- Our placeholder element. Displayed before and when rendering the form. -->
-  <p class="placeholder">Enter the schema URL into the above form.</p>
+<h2 id="data-entry-section-title">Data Input</h2>
+<p id="data-entry-description">Load the schema using the form above.</p>
+<form id="data-entry-form" method="post" style="display: none">
   <!-- The element where the generated form goes to. -->
   <div class="onde-panel"></div>
   <!-- The submit button. -->
-  <p class="actions"><button type="submit" name="submit" disabled="disabled" value="dump_json">Get JSON</button></p>
+  <p class="actions"><button type="submit" name="submit" value="dump_json">Get JSON</button></p>
 </form>
 
 <script type="application/javascript" src="jquery-1.7.1.min.js"></script>
@@ -46,32 +45,35 @@ $(document).ready(function () {
     
     var schemaURL = getHashParameterByName('schema');
     var dataURL = getHashParameterByName('data');
-    var formElement = $('#entry-form');
+    var formElement = $('#data-entry-form');
     var jform = new onde.Onde(formElement);
     function loadForm() {
         if (!schemaURL) {
             return;
         }
         function _loadImpl(schema, data) {
-            formElement.find('.placeholder').text('Rendering form...').show();
+            $('#data-entry-description').text('Rendering form...');
             jform.render(schema, data, {
                 schemaURL: schemaURL,
                 dataURL: dataURL,
-                renderFinished: function (element) {
-                    formElement.find('.placeholder').fadeOut('fast', function () {
-                        element.fadeIn('fast');
-                        //formElement.find('.actions').fadeIn('fast');
-                        formElement.find('.actions button').removeAttr('disabled');
-                        });
+                renderFinished: function (element, details) {
+                    formElement.fadeIn('fast');
+                    if (schema.name) {
+                        $('#data-entry-section-title').text(schema.name);
                     }
-                });
+                    if (schema.description) {
+                        $('#data-entry-description').text(schema.description);
+                    } else {
+                        $('#data-entry-description').hide();
+                    }
+                }
+            });
         };
-        formElement.find('.actions button').attr('disabled', 'disabled');
-        formElement.find('.onde-panel').text('').hide();
-        formElement.find('.placeholder').text('Loading schema...').show();
+        $('#data-entry-section-title').text('Data Input');
+        $('#data-entry-description').text('Loading schema...').show();
         $.getJSON(schemaURL, function (schema) {
             if (dataURL) {
-                formElement.find('.placeholder').text('Loading data...').show();
+                $('#data-entry-description').text('Loading data...');
                 $.getJSON(dataURL, function (data) { _loadImpl(schema, data); });
             } else {
                 _loadImpl(schema, null);
