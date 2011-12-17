@@ -2,28 +2,42 @@
 <html>
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/> 
-    <title>Onde Sample</title>
+    <title>JSON Editor</title>
     <link rel="stylesheet" href="../src/onde.css" type="text/css"/>
   </head>
   <body>
 
-<h1>Onde</h1>
+<div class="header">
+<div class="site-name">JSON Editor</div>
+<div><a href="#" id="data-entry-control">Main</a> | <a href="#schema-loader" id="schema-loader-control">Load Schema</a> | Schema Editor</div>
+</div>
 
-<h2>Schema</h2>
+<h1 id="page-main-title">JSON Editor</h1>
+
+<div class="section" id="schema-load">
+<h2 class="section-title">Schema</h2>
 <form id="launcher-form" action="">
 <p>Schema URL: <input type="text" id="schema-load-input" style="width: 40em" />
 <br/>Data URL: <input type="text" id="schema-load-data-url" style="width: 40em" />
 <br/><button type="submit" id="schema-load-submit">Load</button></p>
 </form>
+</div> <!-- section -->
 
-<h2 id="data-entry-section-title">Data Input</h2>
-<p id="data-entry-description">Load the schema using the form above.</p>
-<form id="data-entry-form" method="post" style="display: none">
+<div class="section" id="data-entry">
+<h2 class="section-title" id="data-entry-section-title">Data Input</h2>
+<p id="data-entry-description">Load any schema using the form above.</p>
+<form id="data-entry-form" method="post">
   <!-- The element where the generated form goes to. -->
   <div class="onde-panel"></div>
   <!-- The submit button. -->
   <p class="actions"><button type="submit" name="submit" value="dump_json">Get JSON</button></p>
 </form>
+</div> <!-- section -->
+
+<div class="section" id="data-output">
+<h2 class="section-title">Output</h2>
+<pre id="json-output" style="overflow: auto; padding: 8px; border: 1px solid #ccc; border-radius: 3px; background-color: #f3f3f3"></pre>
+</div> <!-- section -->
 
 <script type="application/javascript" src="jquery-1.7.1.min.js"></script>
 <script type="application/javascript" src="../src/onde.js"></script>
@@ -43,13 +57,13 @@ function getHashParameterByName(name)
 $(document).ready(function () {
 //    console.log(window.location);
     
-    var schemaURL = getHashParameterByName('schema');
-    var dataURL = getHashParameterByName('data');
+    var schemaURL = getHashParameterByName('schema_url');
+    var dataURL = getHashParameterByName('data_url');
     var formElement = $('#data-entry-form');
     var jform = new onde.Onde(formElement);
     function loadForm() {
         if (!schemaURL) {
-            return;
+            return false;
         }
         function _loadImpl(schema, data) {
             $('#data-entry-description').text('Rendering form...');
@@ -57,9 +71,12 @@ $(document).ready(function () {
                 schemaURL: schemaURL,
                 dataURL: dataURL,
                 renderFinished: function (element, details) {
-                    formElement.fadeIn('fast');
+                    $('#schema-load').hide();
+                    $('#data-entry').fadeIn();
+                    $('#data-output').hide();
+                    //formElement.fadeIn('fast');
                     if (schema.name) {
-                        $('#data-entry-section-title').text(schema.name);
+                        $('#page-main-title').text(schema.name);
                     }
                     if (schema.description) {
                         $('#data-entry-description').text(schema.description);
@@ -69,7 +86,7 @@ $(document).ready(function () {
                 }
             });
         };
-        $('#data-entry-section-title').text('Data Input');
+        $('#page-main-title').text('Data Input');
         $('#data-entry-description').text('Loading schema...').show();
         $.getJSON(schemaURL, function (schema) {
             if (dataURL) {
@@ -95,6 +112,7 @@ $(document).ready(function () {
             }
             return false;
         });
+        return true;
     }
     $('#launcher-form').submit(function (evt) {
         evt.preventDefault();
@@ -108,14 +126,36 @@ $(document).ready(function () {
         loadForm();
         return false;
     });
+    $('.section-title').hide();
     $('#schema-load-input').val(schemaURL);
     $('#schema-load-data-url').val(dataURL);
-    loadForm();
+    if (schemaURL) {
+        $('#schema-load').hide();
+        $('#data-entry').show();
+        $('#data-output').hide();
+        loadForm();
+    } else {
+        $('#page-main-title').text('Load Schema');
+        $('#schema-load').show();
+        $('#data-entry').hide();
+        $('#data-output').hide();
+    }
+    $('#data-entry-control').click(function (evt) {
+        evt.preventDefault();
+        //TODO: Cancel if no schema loaded
+        $('#schema-load').hide();
+        $('#data-entry').fadeIn('fast');
+        $('#data-output').hide();
+    });
+    $('#schema-loader-control').click(function (evt) {
+        evt.preventDefault();
+        $('#page-main-title').text('Load Schema');
+        $('#schema-load').fadeIn('fast');
+        $('#data-entry').hide();
+        $('#data-output').hide();
+    });
 });
 </script>
-
-<h2>Output</h2>
-<pre id="json-output" style="overflow: auto; padding: 8px; border: 1px solid #ccc; border-radius: 3px; background-color: #f3f3f3"></pre>
 
   </body>
 </html>

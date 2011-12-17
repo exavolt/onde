@@ -1,5 +1,6 @@
 {
     "type": "object",
+    "name": "CommonJS Package Descriptor File 1.0",
     "summaryProperties": ["name", "version"],
     "properties": {
         "name": {

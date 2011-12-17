@@ -99,20 +99,21 @@ onde.Onde = function (formElement, schema, documentInst, opts) {
     this.fieldNamespaceSeparator = '.';
     this.fieldNamespaceSeparatorRegex = /\./g;
     this.formElement = $(formElement);
+    this.panelElement = this.formElement.find('.onde-panel');
     this.documentSchema = schema;
     this.documentInstance = documentInst;
     // Object property adder
-    this.formElement.find('.property-add').live('click', function (evt) {
+    this.panelElement.find('.property-add').live('click', function (evt) {
         evt.preventDefault();
         _inst.onAddObjectProperty($(this));
     });
     // Array item adder
-    this.formElement.find('.item-add').live('click', function (evt) {
+    this.panelElement.find('.item-add').live('click', function (evt) {
         evt.preventDefault();
         _inst.onAddListItem($(this));
     });
     // Collapsible field (object and array)
-    this.formElement.find('.collapser').live('click', function (evt) {
+    this.panelElement.find('.collapser').live('click', function (evt) {
         var collapser = $(this);
         var fieldId = collapser.attr('data-fieldvalue-container-id');
         //TODO: Check the field. It must not be inline.
@@ -130,7 +131,7 @@ onde.Onde = function (formElement, schema, documentInst, opts) {
         }
     });
     // Field deleter (property and item)
-    this.formElement.find('.field-delete').live('click', function (evt) {
+    this.panelElement.find('.field-delete').live('click', function (evt) {
         evt.preventDefault();
         evt.stopPropagation(); //CHECK: Only if collapsible
         //console.log('#' + $(this).attr('data-id'));
@@ -147,11 +148,11 @@ onde.Onde = function (formElement, schema, documentInst, opts) {
         });
     });
     // Type selector
-    this.formElement.find('.field-type-select').live('change', function (evt) {
+    this.panelElement.find('.field-type-select').live('change', function (evt) {
         evt.preventDefault();
         _inst.onFieldTypeChanged($(this));
     });
-    //this.formElement.find('.onde-panel').hide();
+    //this.panelElement.hide();
 };
 
 onde.Onde.prototype.render = function (schema, data, opts) {
@@ -160,14 +161,13 @@ onde.Onde.prototype.render = function (schema, data, opts) {
         //CHECK: Bail out or freestyle object?
     }
     this.documentInstance = data;
-    var panel = this.formElement.find('.onde-panel');
-    panel.empty();
-    //panel.hide();
+    this.panelElement.empty();
+    //this.panelElement.hide();
     this.instanceId = this._generateFieldId();
-    this.renderObject(this.documentSchema, panel, this.instanceId, this.documentInstance);
-    //panel.show();
+    this.renderObject(this.documentSchema, this.panelElement, this.instanceId, this.documentInstance);
+    //this.panelElement.show();
     if (opts.renderFinished) {
-        opts.renderFinished(panel);
+        opts.renderFinished(this.panelElement);
     }
 };
 
@@ -691,10 +691,10 @@ onde.Onde.prototype.renderObjectPropertyField = function (namespace, baseId, fie
     // Use the label if provided. Otherwise, use property name.
     var labelText = fieldInfo.label || propName;
     if (namespace === '' && this.documentSchema.primaryProperty && this.documentSchema.primaryProperty == propName) {
-        labelN.append('<strong>' + labelText + '<span class="required-marker" title="This field is required">*</span>: </strong>');
+        labelN.append('<strong>' + labelText + '<span class="required-marker" title="Required field">*</span>: </strong>');
     } else {
         if (fieldInfo.required) {
-            labelN.append(labelText + '<span class="required-marker" title="This field is required">*</span>: ');
+            labelN.append(labelText + '<span class="required-marker" title="Required field">*</span>: ');
         } else {
             labelN.append(labelText + ': ');
         }
