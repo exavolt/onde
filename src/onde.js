@@ -41,6 +41,7 @@
 //TODO: (non-)Exclusive enum
 //TODO: Display character counter for string field if the length is constrained
 //TODO: Descriptive enum value. e.g., { "value": "the-real-value", "label": "Displayed text" }
+//TODO: Add option: collapsed on load (interactively added items are always expanded)
 
 
 /*FIXME: Monkey-patching is not recommended */
@@ -160,11 +161,14 @@ onde.Onde.prototype.render = function (schema, data, opts) {
     if (!this.documentSchema) {
         //CHECK: Bail out or freestyle object?
     }
+    this.options = opts;
     this.documentInstance = data;
     this.panelElement.empty();
     //this.panelElement.hide();
     this.instanceId = this._generateFieldId();
+    this.initialRendering = true;
     this.renderObject(this.documentSchema, this.panelElement, this.instanceId, this.documentInstance);
+    this.initialRendering = false;
     //this.panelElement.show();
     if (opts.renderFinished) {
         opts.renderFinished(this.panelElement);
@@ -678,13 +682,18 @@ onde.Onde.prototype.renderObjectPropertyField = function (namespace, baseId, fie
     labelN.addClass('field-name');
     var valN = null;
     if ((fieldType == 'object' && fieldInfo.display != 'inline') || fieldType == 'array') {
+        // Some special treatments for collapsible field
         rowN.addClass('collapsible');
         labelN.addClass('collapser');
         labelN.attr('data-fieldvalue-container-id', 'fieldvalue-container-' + this._fieldNameToID(fieldName));
         valN = $('<div class="collapsible-panel"></div>');
         valN.addClass('fieldvalue-container');
-        valN.attr('id', 'fieldvalue-container-' + this._fieldNameToID(fieldName)); //CHECK: Get this from the field renderer?
+        valN.attr('id', 'fieldvalue-container-' + this._fieldNameToID(fieldName));
         rowN.append(valN);
+        if (this.initialRendering && this.options.collapsedCollapsibles) {
+            valN.hide();
+            labelN.addClass('collapsed');
+        }
     } else {
         valN = rowN;
     }
@@ -763,6 +772,10 @@ onde.Onde.prototype.renderListItemField = function (namespace, fieldInfo, index,
             valN.addClass('fieldvalue-container');
             valN.attr('id', 'fieldvalue-container-' + this._fieldNameToID(fieldName));
             rowN.append(valN);
+            if (this.initialRendering && this.options.collapsedCollapsibles) {
+                valN.hide();
+                labelN.addClass('collapsed');
+            }
         }
         //labelN.append(idat + ': ');
         labelN.append('&nbsp; ');
