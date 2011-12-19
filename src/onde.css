@@ -14,9 +14,10 @@ html, td {
     border-color: #848484 #c1c1c1 #e1e1e1;
 }
 .onde-panel select {
-    padding: 2px 2px 2px 5px;
+/*    padding: 2px 2px 2px 5px;
     border: 1px solid;
-    border-color: #848484 #c1c1c1 #e1e1e1;
+    border-color: #848484 #c1c1c1 #e1e1e1; */
+    border: 1px solid #c1c1c1;
     background-color: #ffffff;
 }
 
