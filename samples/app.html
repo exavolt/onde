@@ -141,7 +141,7 @@ $(document).ready(function () {
         schemaRef = null;
         formElement.find('.onde-panel').empty();
         formElement.hide();
-        $.get(schemaURL)
+        $.get(schemaURL, null, null, 'json')
           .success(function (schema, textStatus, jqxhr) {
             if (typeof schema == 'object') {
               schemaText = jqxhr.responseText;
@@ -153,7 +153,7 @@ $(document).ready(function () {
             }
             if (dataURL) {
               $('#data-entry-description').text('Loading data...');
-              $.get(dataURL).success(function (data) { _loadImpl(schemaRef, data); });
+              $.get(dataURL, null, null, 'json').success(function (data) { _loadImpl(schemaRef, data); });
             } else {
               _loadImpl(schemaRef, null);
             }
