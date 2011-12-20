@@ -3,11 +3,11 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/> 
     <title>JSON Editor</title>
-    <link rel="stylesheet" href="normalize.css" type="text/css"/>
+    <link rel="stylesheet" href="__s/normalize.css" type="text/css"/>
     <link rel="stylesheet" href="../src/onde.css" type="text/css"/>
-    <link rel="stylesheet" href="app.css" type="text/css"/>
-    <!--link rel="stylesheet" href="codemirror/codemirror.css">
-    <link rel="stylesheet" href="codemirror/default.css"-->
+    <link rel="stylesheet" href="__s/app.css" type="text/css"/>
+    <!--link rel="stylesheet" href="__s/codemirror/codemirror.css">
+    <link rel="stylesheet" href="__s/codemirror/default.css"-->
   </head>
   <body>
 
@@ -33,7 +33,7 @@
 
 <div class="section" id="data-entry">
 <!--h2 class="section-title" id="data-entry-section-title">Data Input</h2-->
-<p id="data-entry-description">This JSON schema editor uses JSON Schema to create form for the editor. Please use the menu above to load or edit schema.</p>
+<p id="data-entry-description">This JSON schema editor uses JSON Schema to create form for the editor. Use the menu above to load or edit schema.</p>
 <form id="data-entry-form" method="post" style="display: none">
   <!-- The element where the generated form goes to. -->
   <div class="onde-panel"></div>
@@ -69,7 +69,7 @@
 
 <div class="dialog" id="about-dialog" style="display: none">
   <h2 class="dialog-title">About</h2>
-  <p>A web-based JSON editor, with schema.</p>
+  <p>A web-based <a href="http://json.org/">JSON</a> editor, with <a href="http://json-schema.org/">schema</a>.</p>
   <p><a href="https://github.com/exavolt/onde">Project page</a>.</p>
 <p><a href="#" class="modal-close">Close</a></p>
 </div> <!-- about -->
@@ -78,11 +78,11 @@
 </div>
 
 
-<script type="application/javascript" src="jquery-1.7.1.min.js"></script>
-<script type="application/javascript" src="yaml-82eb5375dc.min.js"></script>
-<!--script type="application/javascript" src="codemirror/codemirror.js"></script>
-<script type="application/javascript" src="codemirror/javascript.js"></script>
-<script type="application/javascript" src="codemirror/yaml.js"></script-->
+<script type="application/javascript" src="__s/jquery-1.7.1.min.js"></script>
+<script type="application/javascript" src="__s/yaml-82eb5375dc.min.js"></script>
+<!--script type="application/javascript" src="__s/codemirror/codemirror.js"></script>
+<script type="application/javascript" src="__s/codemirror/javascript.js"></script>
+<script type="application/javascript" src="__s/codemirror/yaml.js"></script-->
 <script type="application/javascript" src="../src/onde.js"></script>
 <script type="application/javascript">
 function getHashParameterByName(name, defval)
