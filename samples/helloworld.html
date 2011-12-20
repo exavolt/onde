@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/> 
+    <title>JSON Editor</title>
+    <link rel="stylesheet" href="../src/onde.css" type="text/css"/>
+  </head>
+  <body>
+
+<form id="data-entry-form" method="post">
+  <!-- The element where the generated form goes to. -->
+  <div class="onde-panel"></div>
+  <!-- The submit button. -->
+  <p class="actions"><button type="submit" name="submit">Get JSON</button></p>
+</form>
+
+<script type="application/javascript" src="assets/jquery-1.7.1.min.js"></script>
+<script type="application/javascript" src="../src/onde.js"></script>
+<script type="application/javascript">
+$(document).ready(function () {
+  var sampleSchema = { 
+    type: 'object',
+    name: 'Sample schema',
+    description: 'A sample schema.',
+    properties: {
+      name: { type: 'string' },
+      email: { type: 'string' },
+      website: { type: 'string' }
+      }
+    };
+    
+  var ondeSession = new onde.Onde($('#data-entry-form'));
+  ondeSession.render(sampleSchema, null, { collapsedCollapsibles: true });
+  
+  $('#data-entry-form').submit(function (evt) {
+    evt.preventDefault();
+    var outData = ondeSession.getData();
+    if (outData.errorCount) {
+      alert("Error");
+    } else {
+      console.log(JSON.stringify(outData.data, null, "  "));
+      alert("Output is in your browser's console");
+    }
+    return false;
+  });
+});
+</script>
+
+  </body>
+</html>
