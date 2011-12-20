@@ -169,9 +169,9 @@ $(document).ready(function () {
         } else {
             var format = formElement.find('select[name="format"]').val() || 'json';
             if (format == 'yaml') {
-                var output = '';
+                var output = '# YAML\n';
                 if (schemaURL) {
-                    output = '-- Generated with schema: ' + schemaURL + '\n';
+                    output += '# schema: { url: ' + schemaURL + ', type: json }\n';
                 }
                 output += YAML.encode(outData.data);
                 $('#json-output').text(output);
