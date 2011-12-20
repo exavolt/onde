@@ -4,7 +4,7 @@
 //BUG: Nameless schema
 //BUG: String default
 //BUG: Handling bad schema for object
-//TODO: Support for readonly
+//TODO: Enum with single value is constant
 //TODO: Fix the mess: field value id and field id
 //TODO: Type could be array (!) i.e., union
 //TODO: Check if the property name already exist
@@ -25,20 +25,19 @@
 //TODO: Initially show the edit bars as semi transparent and make it opaque on hover
 //TODO: Options: submit URL, delete URL, ...
 //TODO: More than one level summary
-//TODO: Rich class for items / properties: first and last, even and odd
+//TODO: Rich element class for items / properties: first and last, even and odd
 //TODO: Support for measurement format (i.e.: value - unit compound)
 //TODO: Support for combo requirement (e.g.: length + width + height or height + diameter)
 //TODO: Support for compound (a field consisted of smaller fields).
 // For example measurement field consisted of value field and unit field.
 //TODO: Support for more solid compound: URL or href is defined as field but could be break up to parts.
-//TODO: Enum label (and description)
 //TODO: Allow to replace wordings (e.g.: "Add property:")
 // For "Add item", check that the item's schema has name
 //TODO: Use description as fallback of title (element's title should be only taken from title)
 //TODO: Should support something like: { "type": "object", "properties": { "name": "string" } }. With `name` value is string with all default properties.
 //TODO: Required: any (any field), combo (set of combination)
 //TODO: Automatically add first array item if the item type is singular
-//TODO: (non-)Exclusive enum
+//TODO: (non-)Exclusive enum (use combobox or plain input with autocomplete)
 //TODO: Display character counter for string field if the length is constrained
 //TODO: Descriptive enum value. e.g., { "value": "the-real-value", "label": "Displayed text" }
 //TODO: Add option: collapsed on load (interactively added items are always expanded)
