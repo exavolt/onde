@@ -133,6 +133,7 @@ $(document).ready(function () {
         $('#data-entry-description').text('Loading schema...').show();
         schemaRef = null;
         formElement.find('.onde-panel').empty();
+        formElement.hide();
         $.get(schemaURL)
           .success(function (schema, textStatus, jqxhr) {
             if (typeof schema == 'object') {
