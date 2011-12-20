@@ -12,7 +12,7 @@
 <div class="topbar">
   <div class="fill">
     <div class="container">
-      <a class="brand" href="/">JSON Editor</a>
+      <a class="brand" href="">JSON Editor</a>
       <ul class="nav">
         <li><a href="#schema-loader" id="schema-loader-control">Load Schema</a></li>
         <li><a href="#schema-editor" id="schema-editor-control">Schema Editor</a></li>
@@ -66,7 +66,7 @@
 
 <div class="dialog" id="about-dialog" style="display: none">
   <h2 class="dialog-title">About</h2>
-  <p>A demo application for web-based JSON editor by utilizing the JSON Schema.</p>
+  <p>A web-based JSON editor, with schema.</p>
   <p><a href="https://github.com/exavolt/onde">Project page</a>.</p>
 <p><a href="#" class="modal-close">Close</a></p>
 </div> <!-- about -->
@@ -134,7 +134,7 @@ $(document).ready(function () {
         schemaRef = null;
         formElement.find('.onde-panel').empty();
         $.get(schemaURL)
-          .success(function (schema, statusText, jqxhr) {
+          .success(function (schema, textStatus, jqxhr) {
             if (typeof schema == 'object') {
               schemaText = jqxhr.responseText;
               schemaRef = schema;
@@ -150,8 +150,8 @@ $(document).ready(function () {
               _loadImpl(schemaRef, null);
             }
           })
-          .error(function () {
-            alert("Schema loading failed");
+          .error(function (jqxhr, textStatus, errorThrown) {
+            alert("Schema loading failed: " + errorThrown);
             setPageMainTitle("JSON Editor");
             $('#data-entry-description').text('Please load any schema');
           });

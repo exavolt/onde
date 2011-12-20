@@ -17,15 +17,17 @@ Limitations
   they must contain only alphabet, numeric or underscore; they must not start 
   with a number. This because Onde uses some other characters to denote the 
   object structures in the HTML.
-* Onde currently doesn't support array in 'type' property of schema.
+* Onde currently doesn't support array in 'type' property of schema (union).
 * Onde currently needs the object properties in schema to have valid type.
+* Onde currently doesn't support schema referencing.
 
 
 Quick Start
 -----------
 
-- Open the file `samples/dynamic.html` in a web browser (Firefox or Safari, won't work with Chrome).
-- On the schema url field, enter `schemas/onde-test.json`.
+- Open the file `samples/app.html` in a web browser (Firefox or Safari, won't work with Chrome).
+- Click the `Load Schema` menu item.
+- Enter `http://json-schema.org/address`.
 - Push the `Load` button.
 
 
