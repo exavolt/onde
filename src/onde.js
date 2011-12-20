@@ -673,7 +673,11 @@ onde.Onde.prototype.renderObjectPropertyField = function (namespace, baseId, fie
     } else {
         fieldInfo = {};
     }
-    rowN.addClass(fieldType);
+    if (onde.PRIMITIVE_TYPES.indexOf(fieldType) >= 0) {
+        rowN.addClass(fieldType);
+    } else {
+        rowN.addClass('ref');
+    }
     collectionType = (fieldType == 'object' || fieldType == 'array');
     //rowN.addClass('property');
     //rowN.addClass(baseId + '-property');
@@ -726,6 +730,9 @@ onde.Onde.prototype.renderObjectPropertyField = function (namespace, baseId, fie
     if (fieldInfo['$ref']) {
         //TODO: Deal with schema reference
         valN.append('<span class="value">' + fieldInfo['$ref'] + '</span>');
+    } else if (onde.PRIMITIVE_TYPES.indexOf(fieldType) < 0) {
+        //TODO: Deal with schema reference (and unsupported types)
+        valN.append('<span class="value">' + fieldType + '</span>');
     } else {
         if (valueData && namespace === '' && this.documentSchema.primaryProperty == propName) {
             // Primary property is not editable
