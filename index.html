@@ -5,6 +5,8 @@
     <title>JSON Editor</title>
     <link rel="stylesheet" href="src/onde.css" type="text/css"/>
     <link rel="stylesheet" href="app.css" type="text/css"/>
+    <!--link rel="stylesheet" href="codemirror/codemirror.css">
+    <link rel="stylesheet" href="codemirror/default.css"-->
   </head>
   <body>
 
@@ -29,7 +31,7 @@
 <h1 id="page-main-title">Welcome</h1>
 
 <div class="section" id="data-entry">
-<h2 class="section-title" id="data-entry-section-title">Data Input</h2>
+<!--h2 class="section-title" id="data-entry-section-title">Data Input</h2-->
 <p id="data-entry-description">This JSON schema editor uses JSON Schema to create form for the editor. Please use the menu above to load or edit schema.</p>
 <form id="data-entry-form" method="post" style="display: none">
   <!-- The element where the generated form goes to. -->
@@ -77,6 +79,9 @@
 
 <script type="application/javascript" src="jquery-1.7.1.min.js"></script>
 <script type="application/javascript" src="yaml-82eb5375dc.min.js"></script>
+<!--script type="application/javascript" src="codemirror/codemirror.js"></script>
+<script type="application/javascript" src="codemirror/javascript.js"></script>
+<script type="application/javascript" src="codemirror/yaml.js"></script-->
 <script type="application/javascript" src="src/onde.js"></script>
 <script type="application/javascript">
 function getHashParameterByName(name, defval)
@@ -102,6 +107,7 @@ $(document).ready(function () {
     var dataURL = getHashParameterByName('data_url');
     var formElement = $('#data-entry-form');
     var ondeSession = new onde.Onde(formElement);
+    var schemaEditorCM = null;
     
     function _loadImpl(schema, data) {
         $('#data-entry-description').text('Rendering form...');
@@ -169,10 +175,11 @@ $(document).ready(function () {
         } else {
             var format = formElement.find('select[name="format"]').val() || 'json';
             if (format == 'yaml') {
-                var output = '# YAML\n';
+                var output = '';
                 if (schemaURL) {
-                    output += '# schema: { url: ' + schemaURL + ', type: json }\n';
+                    output += '# schema: ' + schemaURL + '\n';
                 }
+                output += '---\n'; // YAML content start marker
                 output += YAML.encode(outData.data);
                 $('#json-output').text(output);
             } else {
@@ -225,7 +232,18 @@ $(document).ready(function () {
           };
         $('#schema-editor-input').text(JSON.stringify(placeholderSchema, null, "  "));
       }
+      /*if (!schemaEditorCM) {
+        schemaEditorCM = CodeMirror.fromTextArea($('#schema-editor-input')[0], {
+          //lineNumbers: true,
+          matchBrackets: true,
+          mode: { name: 'javascript', json: true }
+        });
+      }*/
+      //$('#schema-editor-input').css('width', '940px');
+      //schemaEditorCM.setValue($('#schema-editor-input').val());
       showDialog($('#schema-editor'));
+      //schemaEditorCM.refresh();
+      //schemaEditorCM.focus();
     });
     $('.site-about-control').click(function (evt) {
       evt.preventDefault();
@@ -255,6 +273,10 @@ $(document).ready(function () {
     };
     function showDialog(element) {
         if (element.css('display') == 'block') {
+          element.
+            css('top', $(window).scrollTop() + 50 + "px").
+            css('left', Math.floor(($(window).width() - element.outerWidth()) / 2) +
+                $(window).scrollLeft() + "px"); //TODO: Put in the middle
           return;
         }
         $('.dialog').hide();
@@ -287,7 +309,7 @@ $(document).ready(function () {
             css('left', 0).
             css('z-index', dialogZIndex).
             css('min-width', '240px').
-            css('max-width', '960px').
+            css('max-width', '940px').
             //css('width', dialogWidth + 'px').
             css('background-color', '#fff').
             css('padding', '8px').
