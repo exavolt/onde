@@ -33,7 +33,7 @@
 
 <div class="section" id="data-entry">
 <!--h2 class="section-title" id="data-entry-section-title">Data Input</h2-->
-<p id="data-entry-description">This JSON schema editor uses JSON Schema to create form for the editor. Use the menu above to load or edit schema.</p>
+<p id="data-entry-description">This JSON editor uses <a href="http://json-schema.org/">JSON Schema</a> to create form for the editor. Use the menu above to load or edit schema.</p>
 <form id="data-entry-form" method="post" style="display: none">
   <!-- The element where the generated form goes to. -->
   <div class="onde-panel"></div>
@@ -102,42 +102,45 @@ function getHashParameterByName(name, defval)
 }
 $(document).ready(function () {
     
+    var defaultPageTitle = $('#page-main-title').text();
+    var defaultPageDesc = $('#data-entry-description').text();
     var schemaURL = getHashParameterByName('schema_url');
-    var schemaRef = null;
+    var schemaRef = null; // Parsed schema
     var schemaText = null; // The schema as provided by the server
+    //var schemaEditorCM = null;
     var dataURL = getHashParameterByName('data_url');
     var formElement = $('#data-entry-form');
     var ondeSession = new onde.Onde(formElement);
-    var schemaEditorCM = null;
     
-    function _loadImpl(schema, data) {
-        $('#data-entry-description').text('Rendering form...');
-        if (schema && schema.name) {
-            setPageMainTitle(schema.name);
-        }
-        ondeSession.render(schema, data, {
-            schemaURL: schemaURL,
-            dataURL: dataURL,
-            collapsedCollapsibles: true,
-            renderFinished: function (element, details) {
-                formElement.hide();
-                clearDialogs();
-                formElement.fadeIn('fast');
-                setPageMainTitle(schema.name || schemaURL || 'Untitled Schema');
-                if (schema.description) {
-                    $('#data-entry-description').text(schema.description);
-                } else {
-                    $('#data-entry-description').hide();
-                }
-            }
-        });
+    function _buildFormImpl(schema, data) {
+      if (!schema) {
+        return;
+      }
+      $('#data-entry-description').text('Rendering form...');
+      setPageMainTitle(schema.name || schemaURL || 'Untitled Schema');
+      ondeSession.render(schema, data, {
+          schemaURL: schemaURL,
+          dataURL: dataURL,
+          collapsedCollapsibles: true,
+          renderFinished: function (element, details) {
+              formElement.hide();
+              clearDialogs();
+              formElement.fadeIn('fast');
+              if (schema.description) {
+                  $('#data-entry-description').text(schema.description);
+              } else {
+                  $('#data-entry-description').hide();
+              }
+          }
+      });
     };
-    function loadForm() {
+    function buildForm() {
         if (!schemaURL) {
             return false;
         }
         setPageMainTitle("Loading...");
         $('#data-entry-description').text('Loading schema...').show();
+        schemaText = null;
         schemaRef = null;
         formElement.find('.onde-panel').empty();
         formElement.hide();
@@ -147,21 +150,21 @@ $(document).ready(function () {
               schemaText = jqxhr.responseText;
               schemaRef = schema;
             } else {
-              //TODO: Guard parse error
               schemaText = schema;
+              //TODO: Guard parse error
               schemaRef = JSON.parse(schemaText);
             }
             if (dataURL) {
               $('#data-entry-description').text('Loading data...');
-              $.get(dataURL, null, null, 'json').success(function (data) { _loadImpl(schemaRef, data); });
+              $.get(dataURL, null, null, 'json').success(function (data) { _buildFormImpl(schemaRef, data); });
             } else {
-              _loadImpl(schemaRef, null);
+              _buildFormImpl(schemaRef, null);
             }
           })
           .error(function (jqxhr, textStatus, errorThrown) {
             alert("Schema loading failed: " + errorThrown);
-            setPageMainTitle("JSON Editor");
-            $('#data-entry-description').text('Please load any schema');
+            setPageMainTitle(defaultPageTitle);
+            $('#data-entry-description').text(defaultPageDesc);
           });
         return true;
     }
@@ -200,7 +203,7 @@ $(document).ready(function () {
             return false;
         }
         //TODO: Change the current location appropriately
-        loadForm();
+        buildForm();
         clearDialogs();
         return false;
     });
@@ -213,7 +216,7 @@ $(document).ready(function () {
       clearDialogs();
       schemaText = $('#schema-editor-input').val()
       schemaRef = JSON.parse(schemaText); //TODO: Guard parse error
-      _loadImpl(schemaRef, null);
+      _buildFormImpl(schemaRef, null);
       return false;
     });
     $('#schema-editor-control').click(function (evt) {
@@ -251,26 +254,14 @@ $(document).ready(function () {
       showDialog($('#about-dialog'));
     });
     
-    $('.section-title').hide();
-    $('#schema-load-input').val(schemaURL);
-    $('#schema-load-data-url').val(dataURL);
-    formElement.hide();
-    if (schemaURL) {
-      // Load the schema if the URL is provided
-      loadForm();
-    }
-    
     $('.dialog .modal-close').live('click', function (evt) {
         evt.preventDefault();
         clearDialogs();
     });
     function setPageMainTitle(text) {
-        if (!text) {
-            //TODO: Set default
-        } else {
-            $('#page-main-title').text(text);
-            document.title = text + ' - JSON Editor';
-        }
+      text = text || defaultPageTitle;
+      $('#page-main-title').text(text);
+      document.title = text + ' - JSON Editor';
     };
     function showDialog(element) {
         if (element.css('display') == 'block') {
@@ -319,12 +310,22 @@ $(document).ready(function () {
         element.
             css('top', $(window).scrollTop() + 50 + "px").
             css('left', Math.floor(($(window).width() - element.outerWidth()) / 2) +
-                $(window).scrollLeft() + "px"). //TODO: Put in the middle
+                $(window).scrollLeft() + "px").
             fadeIn('fast');
     };
     function clearDialogs() {
         $('.dialog').fadeOut('fast', function () { $('#dialog-block-layer').hide(); });
     };
+    
+    
+    $('.section-title').hide();
+    $('#schema-load-input').val(schemaURL);
+    $('#schema-load-data-url').val(dataURL);
+    formElement.hide();
+    if (schemaURL) {
+      // Load the schema if the URL is provided
+      buildForm();
+    }
 });
 </script>
 
