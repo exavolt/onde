@@ -5,7 +5,6 @@
 //BUG: String default
 //BUG: Handling bad schema for object
 //BUG: Root object with 'additionalProperties' won't be shown with editor
-//TODO: Enum with single value is constant (!) Display it with readonly input (or simply text element)
 //TODO: More consistent IDs
 // Fix the mess: field value id and field id
 //TODO: Type could be array (!) i.e., union
@@ -17,7 +16,6 @@
 //TODO: Add 'custom' class to additional properties and list items
 //TODO: Can't just use 'object' and 'array' as type option. Must specify which definition.
 //TODO: Support empty (null?) array item
-//CHECK: Remove empty object and array?
 //TODO: Nicer error reporting (for both rendering and data collecting)
 //TODO: More treatments to multiline string
 //TODO: Smart multiline (textarea) based on the format (and explicit schema property)
@@ -41,7 +39,7 @@
 //TODO: Option: collapsed on load (interactively added items are always expanded)
 // Collapse array / object panel if the data is empty and not required
 // Collapse array / object panel if it's more than defined depth
-//TODO: Option: remove property if the value is empty
+//TODO: Option: remove property if the value is empty (empty object / empty array)
 //TODO: Cascading options (constructor and render)
 
 
@@ -353,19 +351,23 @@ onde.Onde.prototype.renderEnumField = function (fieldName, fieldInfo, valueData)
         hasSelected = true;
     }
     if (fieldInfo && fieldInfo.enum) {
-        var optN = null;
-        fieldNode = $('<select id="fieldvalue-' + this._fieldNameToID(fieldName) + '" name="' + fieldName + '"></select>');
-        if (!fieldInfo.required) {
-            // Add the 'null' option if the field is not required
-            fieldNode.append('<option value=""></option>');
-        }
-        for (var iev = 0; iev < fieldInfo.enum.length; iev++) {
-            optN = $('<option>' + fieldInfo.enum[iev] + '</option>');
-            // Select the value
-            if (hasSelected && selectedValue == fieldInfo.enum[iev]) {
-                optN.attr('selected', 'selected');
+        if (fieldInfo.enum.length > 1) {
+            var optN = null;
+            fieldNode = $('<select id="fieldvalue-' + this._fieldNameToID(fieldName) + '" name="' + fieldName + '"></select>');
+            if (!fieldInfo.required) {
+                // Add the 'null' option if the field is not required
+                fieldNode.append('<option value=""></option>');
             }
-            fieldNode.append(optN);
+            for (var iev = 0; iev < fieldInfo.enum.length; iev++) {
+                optN = $('<option>' + fieldInfo.enum[iev] + '</option>');
+                // Select the value
+                if (hasSelected && selectedValue == fieldInfo.enum[iev]) {
+                    optN.attr('selected', 'selected');
+                }
+                fieldNode.append(optN);
+            }
+        } else {
+            fieldNode = $('<input type="text" id="fieldvalue-' + this._fieldNameToID(fieldName) + '" name="' + fieldName + '" value="' + fieldInfo.enum[0] + '" readonly="readonly" />');
         }
     }
     return fieldNode;

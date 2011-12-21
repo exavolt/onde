@@ -28,17 +28,10 @@
                 "object": { "type": "object" }
             }
         },
-        "clips": {
-            "type": "array",
-            "items": {
-                "type": "object",
-                "display": "inline",
-                "properties": {
-                    "id": { "type": "string" },
-                    "index": { "type": "integer" },
-                    "loop": { "type": "boolean" }
-                    }
-                }
-            }
+        "constant": {
+            "type": "string",
+            "enum": ["constant-value"],
+            "description": "This field has a constant value"
+        }
     }
 }
