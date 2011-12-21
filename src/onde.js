@@ -4,17 +4,15 @@
 //BUG: Nameless schema
 //BUG: String default
 //BUG: Handling bad schema for object
-//TODO: Enum with single value is constant
-//TODO: Fix the mess: field value id and field id
+//TODO: Enum with single value is constant (!) Display it with readonly input (or simply text element)
+//TODO: More consistent IDs
+// Fix the mess: field value id and field id
 //TODO: Type could be array (!) i.e., union
 //TODO: Check if the property name already exist
-//TODO: Remove the limitations for property name (support all kind of character)
+//TODO: Remove the limitations for property name (support all kind of characters)
 //TODO: Deal with 'any' (more consistenly)
-//TODO: More consistent IDs
 //TODO: Boolean value consistency
 //TODO: Warning if the data doesn't conform the schema
-//TODO: Collapse array / object panel if the data is empty and not required
-//TODO: Collapse array / object panel if it's more than defined depth
 //TODO: Add 'custom' class to additional properties and list items
 //TODO: Can't just use 'object' and 'array' as type option. Must specify which definition.
 //TODO: Support empty (null?) array item
@@ -31,8 +29,7 @@
 //TODO: Support for compound (a field consisted of smaller fields).
 // For example measurement field consisted of value field and unit field.
 //TODO: Support for more solid compound: URL or href is defined as field but could be break up to parts.
-//TODO: Allow to replace wordings (e.g.: "Add property:")
-// For "Add item", check that the item's schema has name
+//TODO: Allow to replace wordings (e.g.: "Add property" to "Add person") Use schema's name?
 //TODO: Use description as fallback of title (element's title should be only taken from title)
 //TODO: Should support something like: { "type": "object", "properties": { "name": "string" } }. With `name` value is string with all default properties.
 //TODO: Required: any (any field), combo (set of combination)
@@ -40,7 +37,11 @@
 //TODO: (non-)Exclusive enum (use combobox or plain input with autocomplete)
 //TODO: Display character counter for string field if the length is constrained
 //TODO: Descriptive enum value. e.g., { "value": "the-real-value", "label": "Displayed text" }
-//TODO: Add option: collapsed on load (interactively added items are always expanded)
+//TODO: Option: collapsed on load (interactively added items are always expanded)
+// Collapse array / object panel if the data is empty and not required
+// Collapse array / object panel if it's more than defined depth
+//TODO: Option: remove property if the value is empty
+//TODO: Cascading options (constructor and render)
 
 
 /*FIXME: Monkey-patching is not recommended */
@@ -163,12 +164,10 @@ onde.Onde.prototype.render = function (schema, data, opts) {
     this.options = opts;
     this.documentInstance = data;
     this.panelElement.empty();
-    //this.panelElement.hide();
     this.instanceId = this._generateFieldId();
     this.initialRendering = true;
     this.renderObject(this.documentSchema, this.panelElement, this.instanceId, this.documentInstance);
     this.initialRendering = false;
-    //this.panelElement.show();
     if (opts.renderFinished) {
         opts.renderFinished(this.panelElement);
     }
