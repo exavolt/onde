@@ -26,7 +26,13 @@ Quick Start
 -----------
 
 - Open the file `samples/app.html` in a web browser (Firefox or Safari, won't work with Chrome).
-- Click the `Load Schema` menu item.
-- Enter `schemas/commonjs-package.json`.
-- Push the `Load` button.
+- Click the "Load Schema" menu item.
+- Enter `schemas/jquery-package.json` into the "Schema URL" field.
+- Push the "Load" button.
+
+
+(Un)license
+-----------
+
+This is free and unencumbered software released into the public domain.
 

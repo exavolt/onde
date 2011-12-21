@@ -4,6 +4,7 @@
 //BUG: Nameless schema
 //BUG: String default
 //BUG: Handling bad schema for object
+//BUG: Root object with 'additionalProperties' won't be shown with editor
 //TODO: Enum with single value is constant (!) Display it with readonly input (or simply text element)
 //TODO: More consistent IDs
 // Fix the mess: field value id and field id
