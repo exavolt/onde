@@ -3,3 +3,6 @@
   displayed as combobox.
 * exclusive (pedantic)
 * tuple (use array)
+
+* escape and encode (!)
+* i18n & L10n
