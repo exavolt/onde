@@ -1,6 +1,6 @@
 {
         "name":"Product",
-        "description": "This schemas was copied from http://en.wikipedia.org/wiki/JSON#Schema",
+        "description": "This schema was copied from http://en.wikipedia.org/wiki/JSON#Schema",
         "properties":
         {
                 "id":
