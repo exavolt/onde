@@ -359,7 +359,8 @@ onde.Onde.prototype.renderEnumField = function (fieldName, fieldInfo, valueData)
                 fieldNode.append('<option value=""></option>');
             }
             for (var iev = 0; iev < fieldInfo.enum.length; iev++) {
-                optN = $('<option>' + fieldInfo.enum[iev] + '</option>');
+                optN = $('<option></option>');
+                optN.text(fieldInfo.enum[iev]);
                 // Select the value
                 if (hasSelected && selectedValue == fieldInfo.enum[iev]) {
                     optN.attr('selected', 'selected');
@@ -414,7 +415,7 @@ onde.Onde.prototype.renderTypeSelector = function (typeList, fieldValueId) {
             var optInfo = typeList[iapt];
             if (typeof optInfo == 'string') {
                 // The option is plain string, simply add it as an option.
-                typeOptions.append('<option>' + optInfo + '</option>');
+                typeOptions.append($('<option/>').text(optInfo));
             } else if (typeof optInfo == 'object') {
                 if (optInfo instanceof Array) {
                     // The option is an array.
@@ -434,7 +435,8 @@ onde.Onde.prototype.renderTypeSelector = function (typeList, fieldValueId) {
                 var optText = optInfo['name'] || optType;
                 var optSchemaName = 'schema-' + this._generateFieldId();
                 this.innerSchemas[optSchemaName] = optInfo;
-                var optN = $('<option>' + optText + '</option>');
+                var optN = $('<option></option>');
+                optN.text(optText);
                 optN.attr('value', optType);
                 optN.attr('data-schema-name', optSchemaName);
                 typeOptions.append(optN);
@@ -445,7 +447,7 @@ onde.Onde.prototype.renderTypeSelector = function (typeList, fieldValueId) {
     } else {
         //TODO: Any type
         for (var ipt = 0; ipt < onde.PRIMITIVE_TYPES.length; ++ipt) {
-            typeOptions.append('<option>' + onde.PRIMITIVE_TYPES[ipt] + '</option>');
+            typeOptions.append($('<option/>').text(onde.PRIMITIVE_TYPES[ipt]));
         }
     }
     return typeOptions;
@@ -483,11 +485,11 @@ onde.Onde.prototype.renderFieldValue = function (fieldName, fieldInfo, parentNod
     if (!fieldInfo || !fieldInfo.type || fieldInfo.type == 'any') {
         //TODO: Any!
         if (!fieldInfo) {
-            parentNode.append("InternalError: Missing field information");
+            parentNode.text("InternalError: Missing field information");
         } else if (!fieldInfo.type) {
-            parentNode.append("InternalError: Missing type property");
+            parentNode.text("InternalError: Missing type property");
         } else {
-            parentNode.append("InternalError: Type of 'any' is currently not supported");
+            parentNode.text("InternalError: Type of 'any' is currently not supported");
         }
     } else if (fieldInfo.type == 'string') {
         if (fieldInfo.readonly) {
@@ -543,7 +545,7 @@ onde.Onde.prototype.renderFieldValue = function (fieldName, fieldInfo, parentNod
                 fieldNode.val(valueData);
             } else if (typeof valueData == "string") {
                 if (fieldInfo.type == 'integer') {
-                    fieldNode.val(parseInt(valueData));
+                    fieldNode.val(parseInt(valueData, 10));
                 } else {
                     fieldNode.val(parseFloat(valueData));
                 }
@@ -725,15 +727,15 @@ onde.Onde.prototype.renderObjectPropertyField = function (namespace, baseId, fie
         // Add description to label if the field is collapsible
         var fieldDesc = fieldInfo.description || fieldInfo.title;
         if (fieldDesc) {
-            labelN.append(' <small class="description"><em>' + fieldDesc + '</small></em>');
+            labelN.append(' <small class="description"><em>' + fieldDesc + '</em></small>');
         }
     }
     if (fieldInfo['$ref']) {
         //TODO: Deal with schema reference
-        valN.append('<span class="value">' + fieldInfo['$ref'] + '</span>');
+        valN.append($('<span class="value"></span>').text(fieldInfo['$ref']));
     } else if (onde.PRIMITIVE_TYPES.indexOf(fieldType) < 0) {
         //TODO: Deal with schema reference (and unsupported types)
-        valN.append('<span class="value">' + fieldType + '</span>');
+        valN.append($('<span class="value"></span>').text(fieldType));
     } else {
         if (valueData && namespace === '' && this.documentSchema.primaryProperty == propName) {
             // Primary property is not editable
@@ -865,7 +867,7 @@ onde.Onde.prototype.onAddObjectProperty = function (handle) {
 
 onde.Onde.prototype.onAddListItem = function (handle) {
     var baseId = handle.attr('data-field-id');
-    var lastIndex = parseInt(handle.attr('data-last-index')) + 1;
+    var lastIndex = parseInt(handle.attr('data-last-index'), 10) + 1;
     handle.attr('data-last-index', lastIndex);
     var namespace = handle.attr('data-object-namespace');
     var ftype = handle.attr('data-object-type') || $('#' + baseId + '-type').val();
@@ -919,7 +921,7 @@ onde.Onde.prototype.onFieldTypeChanged = function (handle) {
 };
 
 onde.Onde.prototype._generateFieldId = function () {
-    return 'f' + parseInt(Math.random() * 1000000);
+    return 'f' + parseInt(Math.random() * 1000000, 10);
 };
 onde.Onde.prototype._fieldNameToID = function (fieldName) {
     // Replace dots with hyphens
@@ -962,7 +964,7 @@ onde.Onde.prototype._buildProperty = function (propName, propInfo, path, formDat
             }
         }
         for (var fname in tmpIdx) {
-            itemIndices.push(parseInt(fname));
+            itemIndices.push(parseInt(fname, 10));
         }
         itemIndices = itemIndices.sort(function (a,b) {return a - b});
         var lsData = [];
@@ -1003,11 +1005,15 @@ onde.Onde.prototype._buildProperty = function (propName, propInfo, path, formDat
             if (valData) {
                 result.noData = false;
                 if (dataType == 'integer') {
-                    result.data = parseInt(valData);
+                    result.data = parseInt(valData, 10); //TODO: Radix depends on the radix specified by schema
+                    if (isNaN(result.data)) {
+                        result.errorData = 'value-error';
+                    }
                 } else if (dataType == 'number') {
                     result.data = parseFloat(valData);
-                } else if (dataType == 'integer') {
-                    result.data = parseInt(valData);
+                    if (isNaN(result.data)) {
+                        result.errorData = 'value-error';
+                    }
                 } else if (dataType == 'string') {
                     result.data = valData;
                 } else { //TODO: More types
@@ -1018,13 +1024,16 @@ onde.Onde.prototype._buildProperty = function (propName, propInfo, path, formDat
             } else {
                 if (propInfo && propInfo.required) {
                     result.errorCount += 1;
-                    result.errorData = 'value-error';
+                    result.errorData = 'value-required';
                 }
                 if (!propInfo) {
                     console.log(fieldName);
                 }
             }
         }
+    }
+    if (result.errorData) {
+        $('#field-' + this._fieldNameToID(fieldName)).addClass('error');
     }
     return result;
 };
@@ -1094,7 +1103,7 @@ onde.Onde.prototype._buildObject = function (schema, path, formData) {
                     if (dataType == 'number') {
                         dVal = parseFloat(dVal); //TODO: Guard
                     } else if (dataType == 'integer') {
-                        dVal = parseInt(dVal); //TODO: Guard
+                        dVal = parseInt(dVal, 10); //TODO: Guard
                     } else if (dataType == 'boolean') {
                         //TODO: Guard
                         dVal = (dVal == 'on' || dVal == 'true' || dVal == 'checked' || dVal !== 0 || dVal === true);
@@ -1123,5 +1132,6 @@ onde.Onde.prototype.getData = function () {
     if (formData.next) {
         delete formData.next;
     }
+    this.formElement.find('.onde-panel').find('.error').removeClass('error');
     return this._buildObject(this.documentSchema, this.instanceId, formData);
 };

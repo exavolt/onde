@@ -1,0 +1,10 @@
+{
+    "type": "object",
+    "name": "Test for primitive types",
+    "properties": {
+        "string": { "type": "string" },
+        "number": { "type": "number" },
+        "integer": { "type": "integer" },
+        "boolean": { "type": "boolean" }
+    }
+}

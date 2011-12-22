@@ -233,3 +233,8 @@
 .onde-panel th, .onde-panel td {
     padding: 0 1em;
 }
+
+.onde-panel .field.error,
+.onde-panel .field.error label {
+    background-color: #ffe6df;
+}
