@@ -20,6 +20,7 @@ Limitations
 * Onde currently doesn't support array in 'type' property of schema (union).
 * Onde currently needs the object properties in schema to have valid type.
 * Onde currently doesn't support schema referencing.
+* Onde currently doesn't perform real validation.
 
 
 Quick Start
@@ -27,7 +28,7 @@ Quick Start
 
 - Open the file `samples/app.html` in a web browser (Firefox or Safari, won't work with Chrome).
 - Click the "Load Schema" menu item.
-- Enter `schemas/test-schema.json` into the "Schema URL" field.
+- Enter `schemas/test.json` into the "Schema URL" field.
 - Push the "Load" button.
 
 
