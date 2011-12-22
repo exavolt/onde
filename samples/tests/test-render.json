@@ -27,6 +27,11 @@
                 "array": { "type": "array" },
                 "object": { "type": "object" }
             }
+        },
+        "constant": {
+            "type": "string",
+            "enum": ["constant-value"],
+            "description": "This field has a constant value"
         }
     }
 }

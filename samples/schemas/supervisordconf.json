@@ -1,0 +1,73 @@
+{
+    "type": "object",
+    "name": "supervisord.conf",
+    "properties": {
+        "unix_http_server": {
+            "type": "object",
+            "properties": {
+                "file": {
+                    "type": "string",
+                    "format": "url.path",
+                    "description": "A path to a UNIX domain socket (e.g. /tmp/supervisord.sock) on which supervisor will listen for HTTP/XML-RPC requests."
+                    },
+                "chmod": {
+                    "type": "integer",
+                    "description": "Change the UNIX permission mode bits of the UNIX domain socket to this value at startup.",
+                    "default": "0700",
+                    "format": "octal"
+                    },
+                "chown": {
+                    "type": "string",
+                    "description": "Change the user and group of the socket file to this value. May be a UNIX username (e.g. chrism) or a UNIX username and group separated by a colon (e.g. chrism:wheel)."
+                    },
+                "username": {
+                    "type": "string",
+                    "description": "The username required for authentication to this HTTP server."
+                    },
+                "password": {
+                    "type": "string",
+                    "description": "The password required for authentication to this HTTP server. This can be a cleartext password, or can be specified as a SHA hash if prefixed by the string {SHA}."
+                    }
+                }
+            },
+        "inet_http_server": {
+            "type": "object",
+            "properties": {
+                "port": {
+                    "type": "number",
+                    "description": "A TCP host:port value or (e.g. 127.0.0.1:9001) on which supervisor will listen for HTTP/XML-RPC requests.",
+                    "required": true
+                    },
+                "username": {
+                    "type": "string"
+                    },
+                "password": {
+                    "type": "string"
+                    }
+                }
+            },
+        "supervisord": {
+            "type": "object",
+            "properties": {
+                "logfile": { "type": "string" },
+                "logfile_maxbytes": { "type": "string" },
+                "logfile_backups": { "type": "number" },
+                "loglevel": { "type": "string" },
+                "pidfile": { "type": "string", "format": "url.path" },
+                "nodaemon": { "type": "boolean" },
+                "minfds": { "type": "number" },
+                "minprocs": { "type": "number" },
+                "umask": { "type": "integer", "format": "octal" },
+                "user": { "type": "string" },
+                "identifier": { "type": "string" },
+                "directory": { "type": "string", "format": "url.path" },
+                "nocleanup": { "type": "boolean" },
+                "childlogdir": { "type": "string", "format": "url.path" },
+                "strip_ansi": { "type": "boolean" },
+                "environment": { "type": "object" }
+                }
+            }
+        }
+    }
+
+

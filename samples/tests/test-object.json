@@ -1,8 +1,8 @@
 {
     "type": "object",
     "properties": {
-        "defaultObject": "object",
-        "simpleObject": { "type": "object" },
+        "default": "object",
+        "basic": { "type": "object" },
         "propertyTypes": {
             "type": "object",
             "properties": {

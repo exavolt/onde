@@ -1,41 +1,46 @@
 
 
+//BUG: Wrong ID for delete
 //BUG: Nameless schema
 //BUG: String default
-//TODO: Support for readonly
-//TODO: Fix the mess: field value id and field id
-//TODO: Type could be array (!)
-//TODO: Check if the property name already exist
-//TODO: Remove the limitations for property name (support all kind of character)
-//TODO: Deal with 'any'
+//BUG: Handling bad schema for object
+//BUG: Root object with 'additionalProperties' won't be shown with editor
 //TODO: More consistent IDs
+// Fix the mess: field value id and field id
+//TODO: Type could be array (!) i.e., union
+//TODO: Check if the property name already exist
+//TODO: Remove the limitations for property name (support all kind of characters)
+//TODO: Deal with 'any' (more consistenly)
 //TODO: Boolean value consistency
 //TODO: Warning if the data doesn't conform the schema
-//TODO: Collapse array / object panel if the data is empty and not required
-//TODO: Collapse array / object panel if it's more than defined depth
 //TODO: Add 'custom' class to additional properties and list items
 //TODO: Can't just use 'object' and 'array' as type option. Must specify which definition.
 //TODO: Support empty (null?) array item
-//CHECK: Remove empty object and array?
 //TODO: Nicer error reporting (for both rendering and data collecting)
 //TODO: More treatments to multiline string
 //TODO: Smart multiline (textarea) based on the format (and explicit schema property)
 //TODO: Initially show the edit bars as semi transparent and make it opaque on hover
 //TODO: Options: submit URL, delete URL, ...
 //TODO: More than one level summary
-//TODO: Rich class for items / properties: first and last, even and odd
+//TODO: Rich element class for items / properties: first and last, even and odd
 //TODO: Support for measurement format (i.e.: value - unit compound)
 //TODO: Support for combo requirement (e.g.: length + width + height or height + diameter)
-//TODO: Support for compound (a field consisted of smaller obvious fields). For example measurement field consisted of value field and unit field.
+//TODO: Support for compound (a field consisted of smaller fields).
+// For example measurement field consisted of value field and unit field.
 //TODO: Support for more solid compound: URL or href is defined as field but could be break up to parts.
-//TODO: Enum label (and description)
-//TODO: Allow to replace wordings (e.g.: "Add property:")
+//TODO: Allow to replace wordings (e.g.: "Add property" to "Add person") Use schema's name?
 //TODO: Use description as fallback of title (element's title should be only taken from title)
 //TODO: Should support something like: { "type": "object", "properties": { "name": "string" } }. With `name` value is string with all default properties.
 //TODO: Required: any (any field), combo (set of combination)
 //TODO: Automatically add first array item if the item type is singular
-//TODO: (non-)Exclusive enum
+//TODO: (non-)Exclusive enum (use combobox or plain input with autocomplete)
 //TODO: Display character counter for string field if the length is constrained
+//TODO: Descriptive enum value. e.g., { "value": "the-real-value", "label": "Displayed text" }
+//TODO: Option: collapsed on load (interactively added items are always expanded)
+// Collapse array / object panel if the data is empty and not required
+// Collapse array / object panel if it's more than defined depth
+//TODO: Option: remove property if the value is empty (empty object / empty array)
+//TODO: Cascading options (constructor and render)
 
 
 /*FIXME: Monkey-patching is not recommended */
@@ -86,42 +91,47 @@ var onde = (function () {
 onde.PRIMITIVE_TYPES = ['string', 'number', 'integer', 'boolean', 'array', 'object'];
 //onde.simpleTypes = ['string', 'number', 'integer', 'boolean', 'object', 'array', 'null', 'any'];
 
-onde.Onde = function (element, schema, documentInst, opts) {
+onde.Onde = function (formElement, schema, documentInst, opts) {
     var _inst = this;
+    //this.options = opts;
     this.externalSchemas = {}; // A hash of cached external schemas. The key is the full URL of the schema.
     this.innerSchemas = {};
     this.fieldNamespaceSeparator = '.';
     this.fieldNamespaceSeparatorRegex = /\./g;
-    this.element = $(element);
+    this.formElement = $(formElement);
+    this.panelElement = this.formElement.find('.onde-panel');
     this.documentSchema = schema;
     this.documentInstance = documentInst;
     // Object property adder
-    this.element.find('.property-add').live('click', function (evt) {
+    this.panelElement.find('.property-add').live('click', function (evt) {
         evt.preventDefault();
         _inst.onAddObjectProperty($(this));
     });
     // Array item adder
-    this.element.find('.item-add').live('click', function (evt) {
+    this.panelElement.find('.item-add').live('click', function (evt) {
         evt.preventDefault();
         _inst.onAddListItem($(this));
     });
     // Collapsible field (object and array)
-    this.element.find('.collapsible').live('click', function (evt) {
-        var fieldId = $(this).attr('data-field-id');
-        if (fieldId && !$('#' + fieldId).hasClass('inline')) {
-            $('#' + fieldId).slideToggle('fast');
-/*            if (jQuery.fn.fadeToggle) {
-                // jQuery 1.4.4
-                $('#' + fieldId + '-edit-bar').fadeToggle('fast');
-            } else { */
-                $('#' + fieldId + '-edit-bar').slideToggle('fast');
-/*            } */
-            $(this).toggleClass('collapsed');
-            //TODO: Display indicator (and/or summary) when collapsed
+    this.panelElement.find('.collapser').live('click', function (evt) {
+        var collapser = $(this);
+        var fieldId = collapser.attr('data-fieldvalue-container-id');
+        //TODO: Check the field. It must not be inline.
+        if (fieldId) {
+            // Check the state first (for smoother animations)
+            if (collapser.hasClass('collapsed')) {
+                collapser.removeClass('collapsed');
+                $('#' + fieldId).slideDown('fast');
+            } else {
+                //TODO: Display indicator (and/or summary) when collapsed
+                $('#' + fieldId).slideUp('fast', function () {
+                    collapser.addClass('collapsed');
+                });
+            }
         }
     });
     // Field deleter (property and item)
-    this.element.find('.field-delete').live('click', function (evt) {
+    this.panelElement.find('.field-delete').live('click', function (evt) {
         evt.preventDefault();
         evt.stopPropagation(); //CHECK: Only if collapsible
         //console.log('#' + $(this).attr('data-id'));
@@ -138,54 +148,28 @@ onde.Onde = function (element, schema, documentInst, opts) {
         });
     });
     // Type selector
-    this.element.find('.field-type-select').live('change', function (evt) {
+    this.panelElement.find('.field-type-select').live('change', function (evt) {
         evt.preventDefault();
         _inst.onFieldTypeChanged($(this));
     });
-    this.element.live('submit', function (evt) {
-        evt.preventDefault();
-        var formData = {};
-        var fields = $(this).serializeArray();
-        for (var i = 0; i < fields.length; i++) {
-            formData[fields[i].name] = fields[i].value;
-        }
-        if (formData.next) {
-            delete formData.next;
-        }
-        var outData = _inst._buildObject(_inst.documentSchema, _inst.instanceId, formData);
-        if (outData.errorCount) {
-            //TODO: Show message (use content) and cancel submit
-            alert("Error submitting data. Number of errors: " + outData.errorCount);
-            console.log(outData);
-        } else {
-            //TODO: Submit the result
-            //console.log(outData.data);
-            $('#json-output').text(JSON.stringify(outData.data, null, "  "));
-            $.post("http://localhost:29017/test/test/_insert", { data: JSON.stringify(outData.data) }, null, 'json');
-        }
-        return false;
-    });
-    this.element.find('.placeholder').show();
-    this.element.find('.main').hide();
-    this.element.find('.actions').hide();
+    //this.panelElement.hide();
 };
 
-onde.Onde.prototype.render = function (schema, data) {
+onde.Onde.prototype.render = function (schema, data, opts) {
     this.documentSchema = schema || this.documentSchema;
     if (!this.documentSchema) {
         //CHECK: Bail out or freestyle object?
     }
+    this.options = opts;
     this.documentInstance = data;
-    var panel = this.element.find('.main');
-    panel.empty();
-    panel.hide();
+    this.panelElement.empty();
     this.instanceId = this._generateFieldId();
-    this.renderObject(this.documentSchema, panel, this.instanceId, this.documentInstance);
-    panel.fadeIn();
-    
-    this.element.find('.actions').fadeIn();
-    this.element.find('.placeholder').hide();
-//    this.element.find('.main').append('<p><button type="submit" name="submit" value="dump_json">Get JSON</button></p>');
+    this.initialRendering = true;
+    this.renderObject(this.documentSchema, this.panelElement, this.instanceId, this.documentInstance);
+    this.initialRendering = false;
+    if (opts.renderFinished) {
+        opts.renderFinished(this.panelElement);
+    }
 };
 
 
@@ -327,7 +311,8 @@ onde.Onde.prototype.renderObject = function (schema, parentNode, namespace, data
     }
     // Toolbar if the object can has additional property
     if ('additionalProperties' in schema) {
-        var editBar = $('<div class="edit-bar object" id="' + fieldValueId + '-edit-bar"></div>');
+        var editBar = $('<div class="edit-bar object"></div>');
+        editBar.attr('id', fieldValueId + '-edit-bar');
         var inner = $('<small></small>');
         inner.append('Add property: ');
         inner.append('<input type="text" id="' + fieldValueId + '-key" placeholder="Property name" /> ');
@@ -366,19 +351,23 @@ onde.Onde.prototype.renderEnumField = function (fieldName, fieldInfo, valueData)
         hasSelected = true;
     }
     if (fieldInfo && fieldInfo.enum) {
-        var optN = null;
-        fieldNode = $('<select id="fieldvalue-' + this._fieldNameToID(fieldName) + '" name="' + fieldName + '"></select>');
-        if (!fieldInfo.required) {
-            // Add the 'null' option if the field is not required
-            fieldNode.append('<option value=""></option>');
-        }
-        for (var iev = 0; iev < fieldInfo.enum.length; iev++) {
-            optN = $('<option>' + fieldInfo.enum[iev] + '</option>');
-            // Select the value
-            if (hasSelected && selectedValue == fieldInfo.enum[iev]) {
-                optN.attr('selected', 'selected');
+        if (fieldInfo.enum.length > 1) {
+            var optN = null;
+            fieldNode = $('<select id="fieldvalue-' + this._fieldNameToID(fieldName) + '" name="' + fieldName + '"></select>');
+            if (!fieldInfo.required) {
+                // Add the 'null' option if the field is not required
+                fieldNode.append('<option value=""></option>');
             }
-            fieldNode.append(optN);
+            for (var iev = 0; iev < fieldInfo.enum.length; iev++) {
+                optN = $('<option>' + fieldInfo.enum[iev] + '</option>');
+                // Select the value
+                if (hasSelected && selectedValue == fieldInfo.enum[iev]) {
+                    optN.attr('selected', 'selected');
+                }
+                fieldNode.append(optN);
+            }
+        } else {
+            fieldNode = $('<input type="text" id="fieldvalue-' + this._fieldNameToID(fieldName) + '" name="' + fieldName + '" value="' + fieldInfo.enum[0] + '" readonly="readonly" />');
         }
     }
     return fieldNode;
@@ -662,6 +651,7 @@ onde.Onde.prototype.renderObjectPropertyField = function (namespace, baseId, fie
     var fieldType = null;
     var collectionType = false;
     var rowN = $('<li></li>');
+    rowN.attr('id', 'field-' + this._fieldNameToID(fieldName));
     fieldInfo = this._sanitizeFieldInfo(fieldInfo, valueData);
     rowN.addClass('field');
     if (fieldInfo) {
@@ -684,22 +674,41 @@ onde.Onde.prototype.renderObjectPropertyField = function (namespace, baseId, fie
     } else {
         fieldInfo = {};
     }
-    rowN.addClass(fieldType);
+    if (onde.PRIMITIVE_TYPES.indexOf(fieldType) >= 0) {
+        rowN.addClass(fieldType);
+    } else {
+        rowN.addClass('ref');
+    }
     collectionType = (fieldType == 'object' || fieldType == 'array');
     //rowN.addClass('property');
     //rowN.addClass(baseId + '-property');
     var labelN = $('<label for="' + fieldValueId + '"></label>');
+    rowN.append(labelN);
     labelN.addClass('field-name');
+    var valN = null;
     if ((fieldType == 'object' && fieldInfo.display != 'inline') || fieldType == 'array') {
-        labelN.addClass('collapsible');
+        // Some special treatments for collapsible field
+        rowN.addClass('collapsible');
+        labelN.addClass('collapser');
+        labelN.attr('data-fieldvalue-container-id', 'fieldvalue-container-' + this._fieldNameToID(fieldName));
+        valN = $('<div class="collapsible-panel"></div>');
+        valN.addClass('fieldvalue-container');
+        valN.attr('id', 'fieldvalue-container-' + this._fieldNameToID(fieldName));
+        rowN.append(valN);
+        if (this.initialRendering && this.options.collapsedCollapsibles) {
+            valN.hide();
+            labelN.addClass('collapsed');
+        }
+    } else {
+        valN = rowN;
     }
     // Use the label if provided. Otherwise, use property name.
     var labelText = fieldInfo.label || propName;
     if (namespace === '' && this.documentSchema.primaryProperty && this.documentSchema.primaryProperty == propName) {
-        labelN.append('<strong>' + labelText + '*: </strong>');
+        labelN.append('<strong>' + labelText + '<span class="required-marker" title="Required field">*</span>: </strong>');
     } else {
         if (fieldInfo.required) {
-            labelN.append(labelText + '*: ');
+            labelN.append(labelText + '<span class="required-marker" title="Required field">*</span>: ');
         } else {
             labelN.append(labelText + ': ');
         }
@@ -712,28 +721,28 @@ onde.Onde.prototype.renderObjectPropertyField = function (namespace, baseId, fie
     if (collectionType) {
         labelN.append(actionMenu);
     }
-    if (labelN.hasClass('collapsible')) {
-        //TODO: Description here
+    if (labelN.hasClass('collapser')) {
+        // Add description to label if the field is collapsible
         var fieldDesc = fieldInfo.description || fieldInfo.title;
         if (fieldDesc) {
             labelN.append(' <small class="description"><em>' + fieldDesc + '</small></em>');
         }
     }
-    rowN.append(labelN);
     if (fieldInfo['$ref']) {
         //TODO: Deal with schema reference
-        rowN.append('<span class="value">' + fieldInfo['$ref'] + '</span>');
+        valN.append('<span class="value">' + fieldInfo['$ref'] + '</span>');
+    } else if (onde.PRIMITIVE_TYPES.indexOf(fieldType) < 0) {
+        //TODO: Deal with schema reference (and unsupported types)
+        valN.append('<span class="value">' + fieldType + '</span>');
     } else {
         if (valueData && namespace === '' && this.documentSchema.primaryProperty == propName) {
             // Primary property is not editable
-            rowN.append('<span class="value"><strong>' + valueData + '</strong></span>');
-            rowN.append('<input type="hidden" name="' + fieldName + '" value="' + valueData + '" />');
+            valN.append('<span class="value"><strong>' + valueData + '</strong></span>');
+            valN.append('<input type="hidden" name="' + fieldName + '" value="' + valueData + '" />');
         } else {
-            this.renderFieldValue(fieldName, fieldInfo, rowN, valueData);
-            labelN.attr('data-field-id', fieldValueId);
-            rowN.attr('id', 'field-' + this._fieldNameToID(fieldName));
+            this.renderFieldValue(fieldName, fieldInfo, valN, valueData);
             if (!collectionType) {
-                rowN.append(actionMenu);
+                valN.append(actionMenu);
             }
         }
     }
@@ -746,6 +755,7 @@ onde.Onde.prototype.renderListItemField = function (namespace, fieldInfo, index,
     var fieldValueId = 'fieldvalue-' + this._fieldNameToID(fieldName);
     var collectionType = false;
     var rowN = $('<li></li>');
+    rowN.attr('id', 'field-' + this._fieldNameToID(fieldName));
     fieldInfo = this._sanitizeFieldInfo(fieldInfo, valueData);
     rowN.addClass('field');
     if (typeof fieldInfo.type == 'string') {
@@ -753,17 +763,27 @@ onde.Onde.prototype.renderListItemField = function (namespace, fieldInfo, index,
         collectionType = (fieldInfo.type == 'object' || fieldInfo.type == 'array');
     }
     rowN.addClass('array-item');
-    rowN.attr('id', 'field-' + this._fieldNameToID(fieldName));
     var deleterShown = false;
     var labelN = null;
+    var valN = rowN;
     if (fieldInfo.type == 'object' && fieldInfo.display == 'inline') {
     } else {
         var labelN = $('<label for="' + fieldValueId + '"></label>');
+        rowN.append(labelN);
         labelN.addClass('field-name');
         labelN.addClass('array-index');
         labelN.append('&nbsp;');
         if ((fieldInfo.type == 'object' && fieldInfo.display != 'inline') || fieldInfo.type == 'array') {
-            labelN.addClass('collapsible');
+            rowN.addClass('collapsible');
+            labelN.addClass('collapser');
+            valN = $('<div class="collapsible-panel"></div>');
+            valN.addClass('fieldvalue-container');
+            valN.attr('id', 'fieldvalue-container-' + this._fieldNameToID(fieldName));
+            rowN.append(valN);
+            if (this.initialRendering && this.options.collapsedCollapsibles) {
+                valN.hide();
+                labelN.addClass('collapsed');
+            }
         }
         //labelN.append(idat + ': ');
         labelN.append('&nbsp; ');
@@ -772,14 +792,13 @@ onde.Onde.prototype.renderListItemField = function (namespace, fieldInfo, index,
             labelN.append('<small> <button class="field-delete" data-id="field-' + this._fieldNameToID(fieldName) + '" title="Delete item">delete</button> <small>');
             deleterShown = true;
         }
-        rowN.append(labelN);
     }
-    if (labelN) {
-        labelN.attr('data-field-id', fieldValueId);
+    if (rowN.hasClass('collapsible') && labelN) {
+        labelN.attr('data-fieldvalue-container-id', 'fieldvalue-container-' + this._fieldNameToID(fieldName));
     }
-    this.renderFieldValue(fieldName, fieldInfo, rowN, valueData);
+    this.renderFieldValue(fieldName, fieldInfo, valN, valueData);
     if (!deleterShown) {
-        rowN.append('<small> <button class="field-delete" data-id="field-' + this._fieldNameToID(fieldName) + '" title="Delete item">delete</button> <small>');
+        valN.append('<small> <button class="field-delete" data-id="field-' + this._fieldNameToID(fieldName) + '" title="Delete item">delete</button> <small>');
     }
     return rowN;
 };
@@ -1093,4 +1112,16 @@ onde.Onde.prototype._buildObject = function (schema, path, formData) {
         }
     }
     return result;
+};
+
+onde.Onde.prototype.getData = function () {
+    var formData = {};
+    var fields = this.formElement.serializeArray();
+    for (var i = 0; i < fields.length; i++) {
+        formData[fields[i].name] = fields[i].value;
+    }
+    if (formData.next) {
+        delete formData.next;
+    }
+    return this._buildObject(this.documentSchema, this.instanceId, formData);
 };

@@ -1,5 +1,7 @@
 {
     "type": "object",
+    "name": "CommonJS Package Descriptor File 1.0",
+    "description": "Note that this is incomplete. See http://wiki.commonjs.org/wiki/Packages/1.0 for the complete spec.",
     "summaryProperties": ["name", "version"],
     "properties": {
         "name": {
@@ -42,7 +44,7 @@
         "contributors": {
             "type": "array",
             "required": true,
-            "items": ["string", {
+            "items": [{ "type": "string", "name": "person-name" }, {
                 "type": "object",
                 "name": "person",
                 "properties": {

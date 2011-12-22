@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/> 
+    <title>JSON Editor</title>
+    <link rel="stylesheet" href="assets/normalize.css" type="text/css"/>
+    <link rel="stylesheet" href="../src/onde.css" type="text/css"/>
+    <link rel="stylesheet" href="assets/app.css" type="text/css"/>
+    <!--link rel="stylesheet" href="assets/codemirror/codemirror.css">
+    <link rel="stylesheet" href="assets/codemirror/default.css"-->
+  </head>
+  <body>
+
+
+<div class="topbar">
+  <div class="fill">
+    <div class="container">
+      <a class="brand" href="">JSON Editor</a>
+      <ul class="nav">
+        <li><a href="#schema-loader" id="schema-loader-control">Load Schema</a></li>
+        <li><a href="#schema-editor" id="schema-editor-control">Schema Editor</a></li>
+        <li><a href="#about" class="site-about-control">About</a></li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+
+<div id="site">
+
+
+<h1 id="page-main-title">Welcome</h1>
+
+<div class="section" id="data-entry">
+<!--h2 class="section-title" id="data-entry-section-title">Data Input</h2-->
+<p id="data-entry-description">This JSON editor uses <a href="http://json-schema.org/">JSON Schema</a> to create form for the editor. Use the menu above to load or edit schema.</p>
+<form id="data-entry-form" method="post" style="display: none">
+  <!-- The element where the generated form goes to. -->
+  <div class="onde-panel"></div>
+  <!-- The submit button. -->
+  <p class="actions"><select name="format"><option value="json">JSON</option><option value="yaml">YAML</option></select>
+      <button type="submit" name="submit" value="dump_json">Export</button></p>
+</form>
+</div> <!-- section -->
+
+
+<div class="dialog" id="schema-loader" style="display: none">
+<h2 class="dialog-title">Load Schema</h2>
+<form id="schema-loader-form" action="">
+<p>Schema URL: <input type="text" id="schema-load-input" style="width: 450px;" />
+<br/>Data URL: <input type="text" id="schema-load-data-url" style="width: 450px" /></p>
+<p><button type="submit">Load</button> <a href="#" class="modal-close">Cancel</a></p>
+<p>Note: schema and data may need to be served with the appropriate <a href="http://enable-cors.org/">CORS policy</a>.</p>
+</form>
+</div> <!-- dialog -->
+
+<div class="dialog" id="schema-editor" style="display: none">
+  <h2 class="dialog-title">Edit Schema</h2>
+  <form id="schema-editor-form" action="">
+    <p><textarea id="schema-editor-input" class="code-editor"></textarea></p>
+    <p><button type="submit">Update form</button> <a href="#" class="modal-close">Close</a></p>
+  </form>
+</div> <!-- dialog -->
+
+<div class="dialog" id="data-output" style="display: none">
+<h2 class="dialog-title">Output</h2>
+<p><textarea id="json-output" class="code-editor" readonly="readonly"></textarea></p>
+<p><a href="#" class="modal-close">Close</a></p>
+</div> <!-- dialog -->
+
+<div class="dialog" id="about-dialog" style="display: none">
+  <h2 class="dialog-title">About</h2>
+  <p>A web-based <a href="http://json.org/">JSON</a> editor, with <a href="http://json-schema.org/">schema</a>.</p>
+  <p><a href="https://github.com/exavolt/onde">Project page</a>.</p>
+<p><a href="#" class="modal-close">Close</a></p>
+</div> <!-- about -->
+
+
+</div>
+
+
+<script type="application/javascript" src="assets/jquery-1.7.1.min.js"></script>
+<script type="application/javascript" src="assets/yaml-82eb5375dc.min.js"></script>
+<!--script type="application/javascript" src="assets/codemirror/codemirror.js"></script>
+<script type="application/javascript" src="assets/codemirror/javascript.js"></script>
+<script type="application/javascript" src="assets/codemirror/yaml.js"></script-->
+<script type="application/javascript" src="../src/onde.js"></script>
+<script type="application/javascript">
+function getHashParameterByName(name, defval)
+{
+  name = name.replace(/[\[]/, "\\\[").replace(/[\]]/, "\\\]");
+  var hash = window.location.hash || '#';
+  var hash_parts = hash.split('?', 2);
+  if (hash_parts.length != 2) {
+    return defval;
+  }
+  var regex = new RegExp("&?" + name + "=([^&#]*)");
+  var results = regex.exec(hash_parts[1]);
+  if(results == null)
+    return defval;
+  else
+    return decodeURIComponent(results[1].replace(/\+/g, " "));
+}
+$(document).ready(function () {
+    
+    var defaultPageTitle = $('#page-main-title').text();
+    var defaultPageDesc = $('#data-entry-description').text();
+    var schemaURL = getHashParameterByName('schema_url');
+    var schemaRef = null; // Parsed schema
+    var schemaText = null; // The schema as provided by the server
+    //var schemaEditorCM = null;
+    var dataURL = getHashParameterByName('data_url');
+    var formElement = $('#data-entry-form');
+    var ondeSession = new onde.Onde(formElement);
+    
+    function _buildFormImpl(schema, data) {
+      if (!schema) {
+        return;
+      }
+      $('#data-entry-description').text('Rendering form...');
+      setPageMainTitle(schema.name || schemaURL || 'Untitled Schema');
+      ondeSession.render(schema, data, {
+          schemaURL: schemaURL,
+          dataURL: dataURL,
+          collapsedCollapsibles: true,
+          renderFinished: function (element, details) {
+              formElement.hide();
+              clearDialogs();
+              formElement.fadeIn('fast');
+              if (schema.description) {
+                  $('#data-entry-description').text(schema.description);
+              } else {
+                  $('#data-entry-description').hide();
+              }
+          }
+      });
+    };
+    function buildForm() {
+        if (!schemaURL) {
+            return false;
+        }
+        setPageMainTitle("Loading...");
+        $('#data-entry-description').text('Loading schema...').show();
+        schemaText = null;
+        schemaRef = null;
+        formElement.find('.onde-panel').empty();
+        formElement.hide();
+        $.get(schemaURL, null, null, 'json')
+          .success(function (schema, textStatus, jqxhr) {
+            if (typeof schema == 'object') {
+              schemaText = jqxhr.responseText;
+              schemaRef = schema;
+            } else {
+              schemaText = schema;
+              //TODO: Guard parse error
+              schemaRef = JSON.parse(schemaText);
+            }
+            if (dataURL) {
+              $('#data-entry-description').text('Loading data...');
+              $.get(dataURL, null, null, 'json').success(function (data) { _buildFormImpl(schemaRef, data); });
+            } else {
+              _buildFormImpl(schemaRef, null);
+            }
+          })
+          .error(function (jqxhr, textStatus, errorThrown) {
+            alert("Schema loading failed: " + errorThrown);
+            setPageMainTitle(defaultPageTitle);
+            $('#data-entry-description').text(defaultPageDesc);
+          });
+        return true;
+    }
+    // Listen to form submit
+    formElement.submit(function (evt) {
+        evt.preventDefault();
+        var outData = ondeSession.getData();
+        if (outData.errorCount) {
+            //TODO: Show message (use content) and cancel submit
+            alert("Error loading data. Number of errors: " + outData.errorCount);
+            console.log(outData);
+        } else {
+            var format = formElement.find('select[name="format"]').val() || 'json';
+            if (format == 'yaml') {
+                var output = '';
+                if (schemaURL) {
+                    output += '# schema: ' + schemaURL + '\n';
+                }
+                output += '---\n'; // YAML content start marker
+                output += YAML.encode(outData.data);
+                $('#json-output').text(output);
+            } else {
+                $('#json-output').text(JSON.stringify(outData.data, null, "  "));
+            }
+            showDialog($('#data-output'));
+        }
+        return false;
+    });
+    
+    $('#schema-loader-form').submit(function (evt) {
+        evt.preventDefault();
+        schemaURL = $('#schema-load-input').val();
+        dataURL = $('#schema-load-data-url').val();
+        if (!schemaURL) {
+            alert("No schema URL provided");
+            return false;
+        }
+        //TODO: Change the current location appropriately
+        buildForm();
+        clearDialogs();
+        return false;
+    });
+    $('#schema-loader-control').click(function (evt) {
+        evt.preventDefault();
+        showDialog($('#schema-loader'));
+    });
+    $('#schema-editor-form').submit(function (evt) {
+      evt.preventDefault();
+      clearDialogs();
+      schemaText = $('#schema-editor-input').val()
+      schemaRef = JSON.parse(schemaText); //TODO: Guard parse error
+      _buildFormImpl(schemaRef, null);
+      return false;
+    });
+    $('#schema-editor-control').click(function (evt) {
+      evt.preventDefault();
+      if (schemaRef) {
+        $('#schema-editor-input').text(schemaText || JSON.stringify(schemaRef, null, "  "));
+      } else {
+        var placeholderSchema = { 
+          type: 'object',
+          name: 'Sample schema',
+          description: 'This a sample schema loaded for you. Edit to fit your needs.',
+          properties: {
+            name: { type: 'string' },
+            email: { type: 'string' },
+            website: { type: 'string' }
+            }
+          };
+        $('#schema-editor-input').text(JSON.stringify(placeholderSchema, null, "  "));
+      }
+      /*if (!schemaEditorCM) {
+        schemaEditorCM = CodeMirror.fromTextArea($('#schema-editor-input')[0], {
+          //lineNumbers: true,
+          matchBrackets: true,
+          mode: { name: 'javascript', json: true }
+        });
+      }*/
+      //$('#schema-editor-input').css('width', '940px');
+      //schemaEditorCM.setValue($('#schema-editor-input').val());
+      showDialog($('#schema-editor'));
+      //schemaEditorCM.refresh();
+      //schemaEditorCM.focus();
+    });
+    $('.site-about-control').click(function (evt) {
+      evt.preventDefault();
+      showDialog($('#about-dialog'));
+    });
+    
+    $('.dialog .modal-close').live('click', function (evt) {
+        evt.preventDefault();
+        clearDialogs();
+    });
+    function setPageMainTitle(text) {
+      text = text || defaultPageTitle;
+      $('#page-main-title').text(text);
+      document.title = text + ' - JSON Editor';
+    };
+    function showDialog(element) {
+        if (element.css('display') == 'block') {
+          element.
+            css('top', $(window).scrollTop() + 50 + "px").
+            css('left', Math.floor(($(window).width() - element.outerWidth()) / 2) +
+                $(window).scrollLeft() + "px"); //TODO: Put in the middle
+          return;
+        }
+        $('.dialog').hide();
+        var dialogZIndex = 1000;
+        if (!$('#dialog-block-layer').length) {
+            blockLayer = $('<div id="dialog-block-layer"></div>');
+            blockLayer.
+                css('position', 'fixed').
+                css('top', '0').
+                css('left', '0').
+                css('width', '100%').
+                css('height', '100%').
+                css('z-index', dialogZIndex - 100).
+                css('outline', 'none').
+                css('margin', '0').
+                css('border', 'none').
+                css('padding', '0').
+                css('background', 'none').
+                css('background-color', 'rgba(255, 255, 255, .8)');
+            $('body').append(blockLayer);
+            blockLayer.show();
+        } else {
+            $('#dialog-block-layer').show();
+        }
+        $('#dialog-block-layer').click(clearDialogs);
+        var dialogWidth = 480;
+        element.
+            css('position', 'absolute').
+            css('top', 0).
+            css('left', 0).
+            css('z-index', dialogZIndex).
+            css('min-width', '240px').
+            css('max-width', '940px').
+            //css('width', dialogWidth + 'px').
+            css('background-color', '#fff').
+            css('padding', '8px').
+            css('border', '1px solid #ccc').
+            css('box-shadow', '0 2px 9px rgba(0,0,0,.3)');
+        element.
+            css('top', $(window).scrollTop() + 50 + "px").
+            css('left', Math.floor(($(window).width() - element.outerWidth()) / 2) +
+                $(window).scrollLeft() + "px").
+            fadeIn('fast');
+    };
+    function clearDialogs() {
+        $('.dialog').fadeOut('fast', function () { $('#dialog-block-layer').hide(); });
+    };
+    
+    
+    $('.section-title').hide();
+    $('#schema-load-input').val(schemaURL);
+    $('#schema-load-data-url').val(dataURL);
+    formElement.hide();
+    if (schemaURL) {
+      // Load the schema if the URL is provided
+      buildForm();
+    }
+});
+</script>
+
+  </body>
+</html>

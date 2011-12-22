@@ -1,3 +1,8 @@
 
+* non-restrictive enum: users can select from the existing values or enter their own values
+  displayed as combobox.
 * exclusive (pedantic)
 * tuple (use array)
+
+* escape and encode (!)
+* i18n & L10n
