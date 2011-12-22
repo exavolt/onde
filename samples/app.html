@@ -18,7 +18,7 @@
       <a class="brand" href="">JSON Editor</a>
       <ul class="nav">
         <li><a href="#schema-loader" id="schema-loader-control">Load Schema</a></li>
-        <li><a href="#schema-editor" id="schema-editor-control">Schema Editor</a></li>
+        <li><a href="#schema-editor" id="schema-editor-control">Edit Schema</a></li>
         <li><a href="#about" class="site-about-control">About</a></li>
       </ul>
     </div>
@@ -228,9 +228,9 @@ $(document).ready(function () {
         var placeholderSchema = { 
           type: 'object',
           name: 'Sample schema',
-          description: 'This a sample schema loaded for you. Edit to fit your needs.',
+          description: 'This sample schema is loaded for you. Edit to fit your needs.',
           properties: {
-            name: { type: 'string' },
+            name: { type: 'string', required: 'true' },
             email: { type: 'string' },
             website: { type: 'string' }
             }

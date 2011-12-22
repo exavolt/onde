@@ -6,8 +6,8 @@ json-schema as the base data to build the form.
 
 **NOTE**: Please note that this project is very far from practically useful. 
 There's so many missing functionalities and features. It has non-conformal 
-standards implementation. The code is not well structured and optimized and 
-bad practices all over the place. The UI and UX are not well designed.
+standards implementation. The code is not well structured and optimized with 
+bad practices all over the place. And also, the UI and UX are not well designed.
 
 
 Limitations
@@ -27,8 +27,15 @@ Quick Start
 
 - Open the file `samples/app.html` in a web browser (Firefox or Safari, won't work with Chrome).
 - Click the "Load Schema" menu item.
-- Enter `schemas/jquery-package.json` into the "Schema URL" field.
+- Enter `schemas/test-schema.json` into the "Schema URL" field.
 - Push the "Load" button.
+
+
+Links
+-----
+
+- http://json.org/
+- http://json-schema.org/
 
 
 (Un)license
