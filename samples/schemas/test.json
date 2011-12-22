@@ -1,6 +1,6 @@
 {
         "name":"Product",
-        "description": "This schema was modified of an example frome the spec.",
+        "description": "This schema was copied from http://en.wikipedia.org/wiki/JSON#Schema",
         "properties":
         {
                 "id":
