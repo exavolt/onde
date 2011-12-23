@@ -998,9 +998,6 @@ onde.Onde.prototype._buildProperty = function (propName, propInfo, path, formDat
                 result.noData = false;
             }
         } else {
-            //if (!valData) {
-            //    console.log(fieldName + " " + dataType);
-            //}
             //TODO: Guards
             if (valData) {
                 result.noData = false;
@@ -1032,7 +1029,8 @@ onde.Onde.prototype._buildProperty = function (propName, propInfo, path, formDat
             }
         }
     }
-    if (result.errorData) {
+    if (result.errorCount) {
+        // This field has one or more error
         $('#field-' + this._fieldNameToID(fieldName)).addClass('error');
     }
     return result;
@@ -1106,7 +1104,7 @@ onde.Onde.prototype._buildObject = function (schema, path, formData) {
                         dVal = parseInt(dVal, 10); //TODO: Guard
                     } else if (dataType == 'boolean') {
                         //TODO: Guard
-                        dVal = (dVal == 'on' || dVal == 'true' || dVal == 'checked' || dVal !== 0 || dVal === true);
+                        dVal = (dVal === 'on' || dVal === 'true' || dVal === 'checked' || dVal !== 0 || dVal === true);
                     } else if (dataType == 'string') {
                     } else {
                         console.warn("Unsupported type: " + dataType + " (" + fieldName + ")");

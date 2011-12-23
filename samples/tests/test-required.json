@@ -1,0 +1,21 @@
+{
+    "type": "object",
+    "properties": {
+        "array": {
+            "description": "Add item",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "required": { "type": "string", "required": true },
+                    "notRequired": { "type": "string" }
+                    }
+                }
+            },
+        "integer": {
+            "type": "integer",
+            "required": true,
+            "description": "Try 0"
+            }
+        }
+    }
