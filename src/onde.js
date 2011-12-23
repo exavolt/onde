@@ -371,7 +371,8 @@ onde.Onde.prototype.renderEnumField = function (fieldName, fieldInfo, valueData)
     if (fieldInfo && fieldInfo.enum) {
         if (fieldInfo.enum.length > 1) {
             var optN = null;
-            fieldNode = $('<select id="fieldvalue-' + this._fieldNameToID(fieldName) + '"></select>');
+            fieldNode = $('<select></select>');
+            fieldNode.attr('id', 'fieldvalue-' + this._fieldNameToID(fieldName);
             fieldNode.attr('name', fieldName);
             if (!fieldInfo.required) {
                 // Add the 'null' option if the field is not required
@@ -387,7 +388,8 @@ onde.Onde.prototype.renderEnumField = function (fieldName, fieldInfo, valueData)
                 fieldNode.append(optN);
             }
         } else {
-            fieldNode = $('<input type="text" id="fieldvalue-' + this._fieldNameToID(fieldName) + '" readonly="readonly" />');
+            fieldNode = $('<input type="text" readonly="readonly" />');
+            fieldNode.attr('id', 'fieldvalue-' + this._fieldNameToID(fieldName));
             fieldNode.attr('name', fieldName);
             fieldNade.attr('value', fieldInfo.enum[0]);
         }
@@ -417,7 +419,8 @@ onde.Onde.prototype.renderEditBarContent = function (typeList, fieldValueId, bas
                     var optText = optInfo['name'] || optType;
                     var optSchemaName = 'schema-' + this._generateFieldId();
                     this.innerSchemas[optSchemaName] = optInfo;
-                    controlNode.attr('data-object-type', optType).
+                    controlNode.
+                        attr('data-object-type', optType).
                         attr('data-schema-name', optSchemaName);
                 }
             }
