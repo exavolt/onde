@@ -1,4 +1,4 @@
-
+; // Don't remove this lonely semi-colon
 
 //BUG: Wrong ID for delete
 //BUG: Nameless schema
@@ -74,12 +74,24 @@ if (!Array.prototype.indexOf) {
     };
 }
 // These two are nice things which JS misses so much
-String.prototype._startsWith = function (prefix) {
-    return this.lastIndexOf(prefix, 0) === 0;
-};
-String.prototype._endsWith = function (suffix) {
-    return this.indexOf(suffix, this.length - suffix.length) !== -1;
-};
+if (!String.prototype.startsWith) {
+    String.prototype.startsWith = function (prefix) {
+        "use strict";
+        return this.lastIndexOf(prefix, 0) === 0;
+    };
+}
+if (!String.prototype.endsWith) {
+    String.prototype.endsWith = function (suffix) {
+        "use strict";
+        return this.indexOf(suffix, this.length - suffix.length) !== -1;
+    };
+}
+
+(function($){
+    $.htmlEscape = function(text) {
+        return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\"/g, '&quot;');
+    };
+})(jQuery);
 
 
 var onde = (function () {
@@ -530,7 +542,7 @@ onde.Onde.prototype.renderFieldValue = function (fieldName, fieldInfo, parentNod
         }
         tdN.append(fieldNode);
         if (fieldDesc) {
-            tdN.append(' <small class="description"><em>' + fieldDesc + '</em></small>');
+            tdN.append(' <small class="description"><em>' + $.htmlEscape(fieldDesc) + '</em></small>');
         }
         parentNode.append(tdN);
     } else if (fieldInfo.type == 'number' || fieldInfo.type == 'integer') {
@@ -561,7 +573,7 @@ onde.Onde.prototype.renderFieldValue = function (fieldName, fieldInfo, parentNod
         fieldNode.attr('data-type', fieldInfo.type);
         tdN.append(fieldNode);
         if (fieldDesc) {
-            tdN.append(' <small class="description"><em>' + fieldDesc + '</em></small>');
+            tdN.append(' <small class="description"><em>' + $.htmlEscape(fieldDesc) + '</em></small>');
         }
         parentNode.append(tdN);
     } else if (fieldInfo.type == 'boolean') {
@@ -583,7 +595,7 @@ onde.Onde.prototype.renderFieldValue = function (fieldName, fieldInfo, parentNod
         fieldNode.attr('data-type', fieldInfo.type);
         tdN.append(fieldNode);
         if (fieldDesc) {
-            tdN.append(' <small class="description"><em>' + fieldDesc + '</em></small>');
+            tdN.append(' <small class="description"><em>' + $.htmlEscape(fieldDesc) + '</em></small>');
         }
         parentNode.append(tdN);
     } else if (fieldInfo.type == 'object') {
@@ -642,7 +654,7 @@ onde.Onde.prototype.renderFieldValue = function (fieldName, fieldInfo, parentNod
         parentNode.append(editBar);
         return;
     } else {
-        var tdN = $('<span class="value">InternalError: Unsupported property type: <tt>' + fieldInfo.type + '</tt></span>');
+        var tdN = $('<span class="value">InternalError: Unsupported property type: <tt>' + $.htmlEscape(fieldInfo.type) + '</tt></span>');
         parentNode.append(tdN);
     }
 };
@@ -707,7 +719,9 @@ onde.Onde.prototype.renderObjectPropertyField = function (namespace, baseId, fie
     // Use the label if provided. Otherwise, use property name.
     var labelText = fieldInfo.label || propName;
     //TODO: Not only the root
-    if ((namespace === '' || namespace.indexOf('.') < 0) && this.documentSchema.primaryProperty && this.documentSchema.primaryProperty == propName) {
+    if ((namespace === '' || namespace.indexOf('.') < 0) && 
+      this.documentSchema.primaryProperty && 
+      this.documentSchema.primaryProperty == propName) {
         rowN.addClass('primary');
         labelN.append('<strong>' + labelText + '<span class="required-marker" title="Required field">*</span>: </strong>');
     } else {
@@ -729,7 +743,7 @@ onde.Onde.prototype.renderObjectPropertyField = function (namespace, baseId, fie
         // Add description to label if the field is collapsible
         var fieldDesc = fieldInfo.description || fieldInfo.title;
         if (fieldDesc) {
-            labelN.append(' <small class="description"><em>' + fieldDesc + '</em></small>');
+            labelN.append(' <small class="description"><em>' + $.htmlEscape(fieldDesc) + '</em></small>');
         }
     }
     if (fieldInfo['$ref']) {
@@ -741,7 +755,7 @@ onde.Onde.prototype.renderObjectPropertyField = function (namespace, baseId, fie
     } else {
         if (valueData && namespace === '' && this.documentSchema.primaryProperty == propName) {
             // Primary property is not editable
-            valN.append('<span class="value"><strong>' + valueData + '</strong></span>');
+            valN.append('<span class="value"><strong>' + $.htmlEscape(valueData) + '</strong></span>');
             valN.append('<input type="hidden" name="' + fieldName + '" value="' + valueData + '" />');
         } else {
             this.renderFieldValue(fieldName, fieldInfo, valN, valueData);
@@ -961,7 +975,7 @@ onde.Onde.prototype._buildProperty = function (propName, propInfo, path, formDat
         // We use object to create an array with unique items (a set)
         var tmpIdx = {};
         for (var fname in formData) {
-            if (fname._startsWith(baseFieldName)) {
+            if (fname.startsWith(baseFieldName)) {
                 tmpIdx[fname.slice(baseFieldName.length).split(']', 1)[0]] = true;
             }
         }
@@ -1063,7 +1077,7 @@ onde.Onde.prototype._buildObject = function (schema, path, formData) {
                 continue;
             }
             // Filter the form data
-            if (fieldName._startsWith(cpath)) {
+            if (fieldName.startsWith(cpath)) {
                 var propName = fieldName.slice(cpath.length);
                 var dataType = null;
                 var dotIdx = propName.indexOf(this.fieldNamespaceSeparator);
