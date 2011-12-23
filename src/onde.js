@@ -370,10 +370,11 @@ onde.Onde.prototype.renderEnumField = function (fieldName, fieldInfo, valueData)
         hasSelected = true;
     }
     if (fieldInfo && fieldInfo.enum) {
+        var fieldBaseId = this._fieldNameToID(fieldName);
         if (fieldInfo.enum.length > 1) {
             var optN = null;
             fieldNode = $('<select></select>');
-            fieldNode.attr('id', 'fieldvalue-' + this._fieldNameToID(fieldName));
+            fieldNode.attr('id', 'fieldvalue-' + fieldBaseId);
             fieldNode.attr('name', fieldName);
             if (!fieldInfo.required) {
                 // Add the 'null' option if the field is not required
@@ -390,7 +391,7 @@ onde.Onde.prototype.renderEnumField = function (fieldName, fieldInfo, valueData)
             }
         } else {
             fieldNode = $('<input type="text" readonly="readonly" />');
-            fieldNode.attr('id', 'fieldvalue-' + this._fieldNameToID(fieldName));
+            fieldNode.attr('id', 'fieldvalue-' + fieldBaseId);
             fieldNode.attr('name', fieldName);
             fieldNade.attr('value', fieldInfo.enum[0]);
         }
@@ -685,11 +686,12 @@ onde.Onde.prototype.renderFieldValue = function (fieldName, fieldInfo, parentNod
 
 onde.Onde.prototype.renderObjectPropertyField = function (namespace, baseId, fieldInfo, propName, valueData) {
     var fieldName = namespace + this.fieldNamespaceSeparator + propName;
-    var fieldValueId = 'fieldvalue-' + this._fieldNameToID(fieldName);
+    var fieldBaseId = this._fieldNameToID(fieldName);
+    var fieldValueId = 'fieldvalue-' + fieldBaseId;
     var fieldType = null;
     var collectionType = false;
     var rowN = $('<li></li>');
-    rowN.attr('id', 'field-' + this._fieldNameToID(fieldName));
+    rowN.attr('id', 'field-' + fieldBaseId);
     fieldInfo = this._sanitizeFieldInfo(fieldInfo, valueData);
     rowN.addClass('field');
     if (fieldInfo) {
@@ -729,10 +731,10 @@ onde.Onde.prototype.renderObjectPropertyField = function (namespace, baseId, fie
         // Some special treatments for collapsible field
         rowN.addClass('collapsible');
         labelN.addClass('collapser');
-        labelN.attr('data-fieldvalue-container-id', 'fieldvalue-container-' + this._fieldNameToID(fieldName));
+        labelN.attr('data-fieldvalue-container-id', 'fieldvalue-container-' + fieldBaseId);
         valN = $('<div class="collapsible-panel"></div>');
         valN.addClass('fieldvalue-container');
-        valN.attr('id', 'fieldvalue-container-' + this._fieldNameToID(fieldName));
+        valN.attr('id', 'fieldvalue-container-' + fieldBaseId);
         rowN.append(valN);
         if (this.initialRendering && this.options.collapsedCollapsibles) {
             valN.hide();
@@ -748,7 +750,7 @@ onde.Onde.prototype.renderObjectPropertyField = function (namespace, baseId, fie
       this.documentSchema.primaryProperty && 
       this.documentSchema.primaryProperty == propName) {
         rowN.addClass('primary');
-        labelN.append('<strong>' + $.htmlEscape(labelText) + '<span class="required-marker" title="Required field">*</span>: </strong>');
+        labelN.append('<strong>' + $.htmlEscape(labelText) + '</strong><span class="required-marker" title="Required field">*</span>: ');
     } else {
         if (fieldInfo.required) {
             labelN.append($.htmlEscape(labelText) + '<span class="required-marker" title="Required field">*</span>: ');
@@ -759,7 +761,7 @@ onde.Onde.prototype.renderObjectPropertyField = function (namespace, baseId, fie
     var actionMenu = '';
     //TODO: More actions (only if qualified)
     if (fieldInfo._deletable) {
-        actionMenu = '<small> <button class="field-delete" data-id="field-' + $.htmlEscape(this._fieldNameToID(fieldName)) + '" title="Delete property">delete</button> <small>';
+        actionMenu = '<small> <button class="field-delete" data-id="field-' + $.htmlEscape(fieldBaseId) + '" title="Delete property">delete</button> <small>';
     }
     if (collectionType) {
         labelN.append(actionMenu);
@@ -795,10 +797,11 @@ onde.Onde.prototype.renderObjectPropertyField = function (namespace, baseId, fie
 onde.Onde.prototype.renderListItemField = function (namespace, fieldInfo, index, valueData) {
     var itemId = index;
     var fieldName = namespace + '[' + itemId + ']';
-    var fieldValueId = 'fieldvalue-' + this._fieldNameToID(fieldName);
+    var fieldBaseId = this._fieldNameToID(fieldName);
+    var fieldValueId = 'fieldvalue-' + fieldBaseId;
     var collectionType = false;
     var rowN = $('<li></li>');
-    rowN.attr('id', 'field-' + this._fieldNameToID(fieldName));
+    rowN.attr('id', 'field-' + fieldBaseId);
     fieldInfo = this._sanitizeFieldInfo(fieldInfo, valueData);
     rowN.addClass('field');
     if (typeof fieldInfo.type == 'string') {
@@ -822,7 +825,7 @@ onde.Onde.prototype.renderListItemField = function (namespace, fieldInfo, index,
             labelN.addClass('collapser');
             valN = $('<div class="collapsible-panel"></div>');
             valN.addClass('fieldvalue-container');
-            valN.attr('id', 'fieldvalue-container-' + this._fieldNameToID(fieldName));
+            valN.attr('id', 'fieldvalue-container-' + fieldBaseId);
             rowN.append(valN);
             if (this.initialRendering && this.options.collapsedCollapsibles) {
                 valN.hide();
@@ -833,16 +836,16 @@ onde.Onde.prototype.renderListItemField = function (namespace, fieldInfo, index,
         labelN.append('&nbsp; ');
         //TODO: More actions (only if qualified)
         if (collectionType) {
-            labelN.append('<small> <button class="field-delete" data-id="field-' + this._fieldNameToID(fieldName) + '" title="Delete item">delete</button> <small>');
+            labelN.append('<small> <button class="field-delete" data-id="field-' + $.htmlEscape(fieldBaseId) + '" title="Delete item">delete</button> <small>');
             deleterShown = true;
         }
     }
     if (rowN.hasClass('collapsible') && labelN) {
-        labelN.attr('data-fieldvalue-container-id', 'fieldvalue-container-' + this._fieldNameToID(fieldName));
+        labelN.attr('data-fieldvalue-container-id', 'fieldvalue-container-' + fieldBaseId);
     }
     this.renderFieldValue(fieldName, fieldInfo, valN, valueData);
     if (!deleterShown) {
-        valN.append('<small> <button class="field-delete" data-id="field-' + this._fieldNameToID(fieldName) + '" title="Delete item">delete</button> <small>');
+        valN.append('<small> <button class="field-delete" data-id="field-' + $.htmlEscape(fieldBaseId) + '" title="Delete item">delete</button> <small>');
     }
     return rowN;
 };
@@ -976,13 +979,14 @@ onde.Onde.prototype._fieldNameToID = function (fieldName) {
 onde.Onde.prototype._buildProperty = function (propName, propInfo, path, formData) {
     var result = { data: null, noData: true, errorCount: 0, errorData: null };
     var fieldName = path + this.fieldNamespaceSeparator + propName;
+    var fieldBaseId = this._fieldNameToID(fieldName);
     var ptype = 'any';
     if (propInfo && propInfo.type) {
         ptype = propInfo.type;
     }
     var dataType = ptype;
     if (ptype == 'any') {
-        var fvn = $('#fieldvalue-' + this._fieldNameToID(fieldName));
+        var fvn = $('#fieldvalue-' + fieldBaseId);
         if (fvn.length) {
             dataType = fvn.attr('data-type');
         }
@@ -1075,7 +1079,7 @@ onde.Onde.prototype._buildProperty = function (propName, propInfo, path, formDat
     }
     if (result.errorCount > 0) {
         // This field has one or more error
-        $('#field-' + this._fieldNameToID(fieldName)).addClass('error');
+        $('#field-' + fieldBaseId).addClass('error');
     }
     return result;
 };
