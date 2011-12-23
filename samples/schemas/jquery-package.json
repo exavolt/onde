@@ -2,6 +2,7 @@
     "type": "object",
     "name": "jQuery Plugins Site package.json",
     "description": "Package manifest file for jQuery plugins.",
+    "primaryProperty": "name",
     "properties": {
         "name": {
             "type": "string",

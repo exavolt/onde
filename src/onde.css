@@ -110,6 +110,7 @@
 }
 .onde-panel label.field-name { color: #333;/* background-color: #fff; border-top-left-radius: 4px; */}
 .onde-panel label.field-name.collapser { display: block !important; background-color: #fff;/* margin-bottom: 2px; */}
+.onde-panel .field.primary > label.field-name { text-decoration: underline; }
 .onde-panel ul {
     list-style: none;
 }
@@ -161,6 +162,8 @@
     padding-left: 0;
 }
 .onde-panel small.description {
+    vertical-align: top;
+    width: 320px;
     margin-left: 30px;
     margin-right: 10px;
     color: #999;

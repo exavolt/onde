@@ -706,7 +706,9 @@ onde.Onde.prototype.renderObjectPropertyField = function (namespace, baseId, fie
     }
     // Use the label if provided. Otherwise, use property name.
     var labelText = fieldInfo.label || propName;
-    if (namespace === '' && this.documentSchema.primaryProperty && this.documentSchema.primaryProperty == propName) {
+    //TODO: Not only the root
+    if ((namespace === '' || namespace.indexOf('.') < 0) && this.documentSchema.primaryProperty && this.documentSchema.primaryProperty == propName) {
+        rowN.addClass('primary');
         labelN.append('<strong>' + labelText + '<span class="required-marker" title="Required field">*</span>: </strong>');
     } else {
         if (fieldInfo.required) {
@@ -1004,11 +1006,13 @@ onde.Onde.prototype._buildProperty = function (propName, propInfo, path, formDat
                 if (dataType == 'integer') {
                     result.data = parseInt(valData, 10); //TODO: Radix depends on the radix specified by schema
                     if (isNaN(result.data)) {
+                        result.errorCount += 1;
                         result.errorData = 'value-error';
                     }
                 } else if (dataType == 'number') {
                     result.data = parseFloat(valData);
                     if (isNaN(result.data)) {
+                        result.errorCount += 1;
                         result.errorData = 'value-error';
                     }
                 } else if (dataType == 'string') {
@@ -1029,7 +1033,7 @@ onde.Onde.prototype._buildProperty = function (propName, propInfo, path, formDat
             }
         }
     }
-    if (result.errorCount) {
+    if (result.errorCount > 0) {
         // This field has one or more error
         $('#field-' + this._fieldNameToID(fieldName)).addClass('error');
     }
