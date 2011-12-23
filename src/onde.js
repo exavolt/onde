@@ -45,6 +45,7 @@
 // Collapse array / object panel if it's more than defined depth
 //TODO: Option: remove property if the value is empty (empty object / empty array)
 //TODO: Cascading options (constructor and render)
+//TODO: Array with single primitive type, display the edit bar as input box
 
 
 /*FIXME: Monkey-patching is not recommended */
@@ -331,7 +332,7 @@ onde.Onde.prototype.renderObject = function (schema, parentNode, namespace, data
         editBar.attr('id', fieldValueId + '-edit-bar');
         var inner = $('<small></small>');
         inner.append('Add property: ');
-        inner.append('<input type="text" id="' + fieldValueId + '-key" placeholder="Property name" /> ');
+        inner.append($('<input type="text" placeholder="Property name" />').attr('id', fieldValueId + '-key'));
         var addBtn = $('<button>Add</button>');
         addBtn.
             addClass('field-add').
@@ -372,7 +373,7 @@ onde.Onde.prototype.renderEnumField = function (fieldName, fieldInfo, valueData)
         if (fieldInfo.enum.length > 1) {
             var optN = null;
             fieldNode = $('<select></select>');
-            fieldNode.attr('id', 'fieldvalue-' + this._fieldNameToID(fieldName);
+            fieldNode.attr('id', 'fieldvalue-' + this._fieldNameToID(fieldName));
             fieldNode.attr('name', fieldName);
             if (!fieldInfo.required) {
                 // Add the 'null' option if the field is not required
@@ -747,18 +748,18 @@ onde.Onde.prototype.renderObjectPropertyField = function (namespace, baseId, fie
       this.documentSchema.primaryProperty && 
       this.documentSchema.primaryProperty == propName) {
         rowN.addClass('primary');
-        labelN.append('<strong>' + labelText + '<span class="required-marker" title="Required field">*</span>: </strong>');
+        labelN.append('<strong>' + $.htmlEscape(labelText) + '<span class="required-marker" title="Required field">*</span>: </strong>');
     } else {
         if (fieldInfo.required) {
-            labelN.append(labelText + '<span class="required-marker" title="Required field">*</span>: ');
+            labelN.append($.htmlEscape(labelText) + '<span class="required-marker" title="Required field">*</span>: ');
         } else {
-            labelN.append(labelText + ': ');
+            labelN.append($.htmlEscape(labelText) + ': ');
         }
     }
     var actionMenu = '';
     //TODO: More actions (only if qualified)
     if (fieldInfo._deletable) {
-        actionMenu = '<small> <button class="field-delete" data-id="field-' + this._fieldNameToID(fieldName) + '" title="Delete property">delete</button> <small>';
+        actionMenu = '<small> <button class="field-delete" data-id="field-' + $.htmlEscape(this._fieldNameToID(fieldName)) + '" title="Delete property">delete</button> <small>';
     }
     if (collectionType) {
         labelN.append(actionMenu);
@@ -779,8 +780,8 @@ onde.Onde.prototype.renderObjectPropertyField = function (namespace, baseId, fie
     } else {
         if (valueData && namespace === '' && this.documentSchema.primaryProperty == propName) {
             // Primary property is not editable
-            valN.append('<span class="value"><strong>' + $.htmlEscape(valueData) + '</strong></span>');
-            valN.append('<input type="hidden" name="' + fieldName + '" value="' + valueData + '" />');
+            valN.append($('<span class="value"></span>').append($('<strong></strong>').text(valueData)));
+            valN.append($('<input type="hidden" />').attr('name', fieldName).attr('value', valueData));
         } else {
             this.renderFieldValue(fieldName, fieldInfo, valN, valueData);
             if (!collectionType) {
