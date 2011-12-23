@@ -1,5 +1,9 @@
 ; // Don't remove this lonely semi-colon
 
+/* NOTES:
+ * Use jQuery.fn.text and jQuery.fn.attr rather than string concatenation where possible.
+ */
+
 //BUG: Wrong ID for delete
 //BUG: Nameless schema
 //BUG: String default
@@ -252,11 +256,11 @@ onde.Onde.prototype.renderObject = function (schema, parentNode, namespace, data
     var objectId = 'field-' + this._fieldNameToID(namespace);
     var fieldValueId = 'fieldvalue-' + this._fieldNameToID(namespace);
     var baseNode = $('<ul></ul>');
+    baseNode.attr('id', fieldValueId);
     baseNode.attr('data-type', 'object'); //CHECK: Always?
     if (schema.display) {
         baseNode.addClass(schema.display);
     }
-    baseNode.attr('id', fieldValueId);
     // Render all the properties defined in the schema
     var rowN = null;
     for (var ik = 0; ik < sortedKeys.length; ik++) {
@@ -329,9 +333,11 @@ onde.Onde.prototype.renderObject = function (schema, parentNode, namespace, data
         inner.append('Add property: ');
         inner.append('<input type="text" id="' + fieldValueId + '-key" placeholder="Property name" /> ');
         var addBtn = $('<button>Add</button>');
-        addBtn.addClass('field-add').
+        addBtn.
+            addClass('field-add').
             addClass('property-add');
-        addBtn.attr('data-field-id', fieldValueId).
+        addBtn.
+            attr('data-field-id', fieldValueId).
             attr('data-object-namespace', namespace);
         this.renderEditBarContent(propertyTypes, fieldValueId, inner, addBtn);
         inner.append(' ').append(addBtn);
@@ -365,7 +371,8 @@ onde.Onde.prototype.renderEnumField = function (fieldName, fieldInfo, valueData)
     if (fieldInfo && fieldInfo.enum) {
         if (fieldInfo.enum.length > 1) {
             var optN = null;
-            fieldNode = $('<select id="fieldvalue-' + this._fieldNameToID(fieldName) + '" name="' + fieldName + '"></select>');
+            fieldNode = $('<select id="fieldvalue-' + this._fieldNameToID(fieldName) + '"></select>');
+            fieldNode.attr('name', fieldName);
             if (!fieldInfo.required) {
                 // Add the 'null' option if the field is not required
                 fieldNode.append('<option value=""></option>');
@@ -380,7 +387,9 @@ onde.Onde.prototype.renderEnumField = function (fieldName, fieldInfo, valueData)
                 fieldNode.append(optN);
             }
         } else {
-            fieldNode = $('<input type="text" id="fieldvalue-' + this._fieldNameToID(fieldName) + '" name="' + fieldName + '" value="' + fieldInfo.enum[0] + '" readonly="readonly" />');
+            fieldNode = $('<input type="text" id="fieldvalue-' + this._fieldNameToID(fieldName) + '" readonly="readonly" />');
+            fieldNode.attr('name', fieldName);
+            fieldNade.attr('value', fieldInfo.enum[0]);
         }
     }
     return fieldNode;
@@ -421,7 +430,8 @@ onde.Onde.prototype.renderEditBarContent = function (typeList, fieldValueId, bas
 onde.Onde.prototype.renderTypeSelector = function (typeList, fieldValueId) {
     // Renders type selector from type list.
     // This selector is for field (item or property) value is not restricted into one particular type.
-    var typeOptions = $('<select id="' + fieldValueId + '-type"></select> ');
+    var typeOptions = $('<select></select> ');
+    typeOptions.attr('id', fieldValueId + '-type');
     if (typeList && typeList.length) {
         for (var iapt = 0; iapt < typeList.length; ++iapt) {
             var optInfo = typeList[iapt];
@@ -515,12 +525,16 @@ onde.Onde.prototype.renderFieldValue = function (fieldName, fieldInfo, parentNod
         } else {
             //TODO: Format
             if (fieldInfo && fieldInfo.format == 'multiline') {
-                fieldNode = $('<textarea id="' + fieldValueId + '" name="' + fieldName + '" class="value-input"></textarea>');
+                fieldNode = $('<textarea class="value-input"></textarea>');
+                fieldNode.attr('id', fieldValueId);
+                fieldNode.attr('name', fieldName);
                 if (typeof valueData == 'string') {
                     fieldNode.val(valueData);
                 }
             } else {
-                fieldNode = $('<input id="' + fieldValueId + '" type="text" name="' + fieldName + '" class="value-input" />');
+                fieldNode = $('<input type="text" class="value-input" />');
+                fieldNode.attr('id', fieldValueId);
+                fieldNode.attr('name', fieldName);
                 if (typeof valueData == 'string') {
                     fieldNode.val(valueData);
                 }
@@ -552,7 +566,9 @@ onde.Onde.prototype.renderFieldValue = function (fieldName, fieldInfo, parentNod
         if (fieldInfo && fieldInfo.enum) {
             fieldNode = this.renderEnumField(fieldName, fieldInfo, valueData);
         } else {
-            fieldNode = $('<input id="' + fieldValueId + '" type="text" name="' + fieldName + '" class="value-input" />');
+            fieldNode = $('<input type="text" class="value-input" />');
+            fieldNode.attr('id', fieldValueId);
+            fieldNode.attr('name', fieldName);
             if (typeof valueData == "number") {
                 fieldNode.val(valueData);
             } else if (typeof valueData == "string") {
@@ -580,7 +596,9 @@ onde.Onde.prototype.renderFieldValue = function (fieldName, fieldInfo, parentNod
         // Boolean property
         var tdN = $('<span class="value"></span>');
         //TODO: Check box (allow value replacements/mapping)
-        var fieldNode = $('<input id="' + fieldValueId + '" type="checkbox" name="' + fieldName + '" class="value-input" />');
+        var fieldNode = $('<input type="checkbox" class="value-input" />');
+        fieldNode.attr('id', fieldValueId);
+        fieldNode.attr('name', fieldName);
         if (valueData === true || valueData === 'true' || valueData === 1 || valueData === '1') {
             fieldNode.attr('checked', 'checked');
         }
@@ -606,7 +624,8 @@ onde.Onde.prototype.renderFieldValue = function (fieldName, fieldInfo, parentNod
     } else if (fieldInfo.type == 'array') {
         //TODO:FIXME:HACK:TEMP: Dummy array item (should make the renderer understands different kind of fieldInfo types)
         var itemSchema = { "type": "any" };
-        var contN = $('<ol id="' + fieldValueId + '" start="0"></ol>');
+        var contN = $('<ol start="0"></ol>');
+        contN.attr('id', fieldValueId);
         contN.attr('data-type', 'array');
         var lastIndex = 0;
         if (valueData) {
@@ -639,7 +658,8 @@ onde.Onde.prototype.renderFieldValue = function (fieldName, fieldInfo, parentNod
                 console.warn("Invalid items type: " + (typeof fieldInfo.items) + " (" + fieldName + ")");
             }
         }
-        var editBar = $('<div class="edit-bar array" id="' + fieldValueId + '-edit-bar"></div>');
+        var editBar = $('<div class="edit-bar array"></div>');
+        editBar.attr('id', fieldValueId + '-edit-bar');
         var inner = $('<small></small>');
         inner.append('Add item: ');
         var addBtn = $('<button>Add</button>');
@@ -696,8 +716,9 @@ onde.Onde.prototype.renderObjectPropertyField = function (namespace, baseId, fie
     collectionType = (fieldType == 'object' || fieldType == 'array');
     //rowN.addClass('property');
     //rowN.addClass(baseId + '-property');
-    var labelN = $('<label for="' + fieldValueId + '"></label>');
+    var labelN = $('<label></label>');
     rowN.append(labelN);
+    labelN.attr('for', fieldValueId);
     labelN.addClass('field-name');
     var valN = null;
     if ((fieldType == 'object' && fieldInfo.display != 'inline') || fieldType == 'array') {
@@ -786,8 +807,9 @@ onde.Onde.prototype.renderListItemField = function (namespace, fieldInfo, index,
     var valN = rowN;
     if (fieldInfo.type == 'object' && fieldInfo.display == 'inline') {
     } else {
-        var labelN = $('<label for="' + fieldValueId + '"></label>');
+        var labelN = $('<label></label>');
         rowN.append(labelN);
+        labelN.attr('for', fieldValueId);
         labelN.addClass('field-name');
         labelN.addClass('array-index');
         labelN.append('&nbsp;');
