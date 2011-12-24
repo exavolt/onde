@@ -4,7 +4,7 @@
  * Use jQuery.fn.text and jQuery.fn.attr rather than string concatenation where possible.
  */
 
-//BUG: Wrong ID for delete
+//BUG: Required object and array
 //BUG: Nameless schema
 //BUG: String default
 //BUG: Handling bad schema for object
@@ -151,7 +151,6 @@ onde.Onde = function (formElement, schema, documentInst, opts) {
     this.panelElement.find('.field-delete').live('click', function (evt) {
         evt.preventDefault();
         evt.stopPropagation(); //CHECK: Only if collapsible
-        //console.log('#' + $(this).attr('data-id'));
         $('#' + $(this).attr('data-id')).fadeOut('fast', function () {
             // Change the item's and siblings' classes accordingly
             //FIXME: This is unstable
@@ -199,43 +198,11 @@ onde.Onde.prototype.renderObject = function (schema, parentNode, namespace, data
     schema = schema || { type: "object", additionalProperties: true, _deletable: true };
     var props = schema.properties || {};
     var sortedKeys = [];
-    if (false) {
-        for (var propName in props) {
-            // First filter, ignore properties not owned by the schema object
-            if (!props.hasOwnProperty(propName)) {
-                continue;
-            }
-            // Rule out primary property, if any, for now
-            if (schema.primaryProperty && propName == schema.primaryProperty) {
-                continue;
-            }
-            // Ignore properties used as object summary
-            if (schema.summaryProperties && schema.summaryProperties.indexOf(propName) >= 0 && propName.indexOf(this.fieldNamespaceSeparator) < 0) {
-                continue;
-            }
+    for (var propName in props) {
+        if (props.hasOwnProperty(propName) && 
+          (!schema.primaryProperty || propName != schema.primaryProperty) && 
+          sortedKeys.indexOf(propName) < 0) {
             sortedKeys.push(propName);
-        }
-        // Sort the collected property names
-        sortedKeys.sort();
-        // Add object summary properties
-        if (schema.summaryProperties) {
-            for (var isp = schema.summaryProperties.length - 1; isp >= 0; --isp) {
-                if (schema.primaryProperty && schema.summaryProperties[isp] == schema.primaryProperty) {
-                    continue;
-                }
-                if (schema.summaryProperties[isp].indexOf(this.fieldNamespaceSeparator) >= 0) {
-                    continue;
-                }
-                sortedKeys.unshift(schema.summaryProperties[isp]);
-            }
-        }
-    } else {
-        for (var propName in props) {
-            if (props.hasOwnProperty(propName) && (!schema.primaryProperty || propName != schema.primaryProperty)) {
-                if (sortedKeys.indexOf(propName) < 0) {
-                    sortedKeys.push(propName);
-                }
-            }
         }
     }
     // Last property to be collected is the primary, if any.
