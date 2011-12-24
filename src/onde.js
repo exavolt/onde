@@ -46,6 +46,8 @@
 //TODO: Option: remove property if the value is empty (empty object / empty array)
 //TODO: Cascading options (constructor and render)
 //TODO: Array with single primitive type, display the edit bar as input box
+//TOTHINK: Boolean field as dropdown with 3 options (' ', 'true'/'yes', 'false'/'no') for non-required
+// and 2 options ('true'/'yes', 'false'/'no') for required
 
 
 /*FIXME: Monkey-patching is not recommended */
@@ -1007,44 +1009,37 @@ onde.Onde.prototype._buildProperty = function (propName, propInfo, path, formDat
             valData = formData[fieldName];
         }
         if (dataType == 'boolean') {
-            if (valData === 'on' || valData === 'true' || valData === 'checked' || valData === 1 || valData === true) {
-                result.data = true;
-                result.noData = false;
-            } else if (propInfo.required) {
-                result.data = false;
-                result.noData = false;
+            //NOTE: This makes boolean property always present
+            result.data = (valData === 'on' || valData === 'true' || valData === 'checked' || valData === 1 || valData === true);
+            result.noData = false;
+        } else if (valData) {
+            result.noData = false;
+            if (dataType == 'integer') {
+                result.data = parseInt(valData, 10); //TODO: Radix depends on the radix specified by the schema
+                if (isNaN(result.data)) {
+                    result.errorCount += 1;
+                    result.errorData = 'value-error';
+                }
+            } else if (dataType == 'number') {
+                result.data = parseFloat(valData);
+                if (isNaN(result.data)) {
+                    result.errorCount += 1;
+                    result.errorData = 'value-error';
+                }
+            } else if (dataType == 'string') {
+                result.data = valData;
+            } else {
+                console.warn("Unsupported type: " + dataType + " (" + fieldName + ")");
+                result.errorCount += 1;
+                result.errorData = 'type-error';
             }
         } else {
-            //TODO: Guards
-            if (valData) {
-                result.noData = false;
-                if (dataType == 'integer') {
-                    result.data = parseInt(valData, 10); //TODO: Radix depends on the radix specified by the schema
-                    if (isNaN(result.data)) {
-                        result.errorCount += 1;
-                        result.errorData = 'value-error';
-                    }
-                } else if (dataType == 'number') {
-                    result.data = parseFloat(valData);
-                    if (isNaN(result.data)) {
-                        result.errorCount += 1;
-                        result.errorData = 'value-error';
-                    }
-                } else if (dataType == 'string') {
-                    result.data = valData;
-                } else {
-                    console.warn("Unsupported type: " + dataType + " (" + fieldName + ")");
-                    result.errorCount += 1;
-                    result.errorData = 'type-error';
-                }
-            } else {
-                if (propInfo && propInfo.required) {
-                    result.errorCount += 1;
-                    result.errorData = 'value-required';
-                }
-                if (!propInfo) {
-                    console.log(fieldName);
-                }
+            if (propInfo && propInfo.required) {
+                result.errorCount += 1;
+                result.errorData = 'value-required';
+            }
+            if (!propInfo) {
+                console.log(fieldName);
             }
         }
     }
@@ -1119,7 +1114,6 @@ onde.Onde.prototype._buildObject = function (schema, path, formData) {
                         }
                     }
                 } else {
-                    var noData = true;
                     // Get the type from the element
                     dataType = $('#fieldvalue-' + this._fieldNameToID(fieldName)).attr('data-type');
                     if (dataType == 'integer') {
