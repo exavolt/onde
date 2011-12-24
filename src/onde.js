@@ -561,7 +561,7 @@ onde.Onde.prototype.renderFieldValue = function (fieldName, fieldInfo, parentNod
         }
         tdN.append(fieldNode);
         if (fieldDesc) {
-            tdN.append(' <small class="description"><em>' + $.htmlEscape(fieldDesc) + '</em></small>');
+            tdN.append(' ').append($('<small class="description"></small>').append($('<em></em>').text(fieldDesc)));
         }
         parentNode.append(tdN);
     } else if (fieldInfo.type == 'number' || fieldInfo.type == 'integer') {
@@ -594,7 +594,7 @@ onde.Onde.prototype.renderFieldValue = function (fieldName, fieldInfo, parentNod
         fieldNode.attr('data-type', fieldInfo.type);
         tdN.append(fieldNode);
         if (fieldDesc) {
-            tdN.append(' <small class="description"><em>' + $.htmlEscape(fieldDesc) + '</em></small>');
+            tdN.append(' ').append($('<small class="description"></small>').append($('<em></em>').text(fieldDesc)));
         }
         parentNode.append(tdN);
     } else if (fieldInfo.type == 'boolean') {
@@ -618,7 +618,7 @@ onde.Onde.prototype.renderFieldValue = function (fieldName, fieldInfo, parentNod
         fieldNode.attr('data-type', fieldInfo.type);
         tdN.append(fieldNode);
         if (fieldDesc) {
-            tdN.append(' <small class="description"><em>' + $.htmlEscape(fieldDesc) + '</em></small>');
+            tdN.append(' ').append($('<small class="description"></small>').append($('<em></em>').text(fieldDesc)));
         }
         parentNode.append(tdN);
     } else if (fieldInfo.type == 'object') {
@@ -770,7 +770,7 @@ onde.Onde.prototype.renderObjectPropertyField = function (namespace, baseId, fie
         // Add description to label if the field is collapsible
         var fieldDesc = fieldInfo.description || fieldInfo.title;
         if (fieldDesc) {
-            labelN.append(' <small class="description"><em>' + $.htmlEscape(fieldDesc) + '</em></small>');
+            labelN.append(' ').append($('<small class="description"></small>').append($('<em></em>').text(fieldDesc)));
         }
     }
     if (fieldInfo['$ref']) {
