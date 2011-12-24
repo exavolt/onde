@@ -210,6 +210,7 @@ onde.Onde.prototype.renderObject = function (schema, parentNode, namespace, data
         sortedKeys.unshift(schema.primaryProperty);
     }
     if (schema['extends']) {
+        // Process schema extends
         for (var ixs = 0; ixs < schema['extends'].length; ++ixs) {
             var extSchema = this.getSchema(schema['extends'][ixs]);
             for (var propName in extSchema.properties) {
@@ -295,15 +296,16 @@ onde.Onde.prototype.renderObject = function (schema, parentNode, namespace, data
     }
     // Toolbar if the object can has additional property
     if ('additionalProperties' in schema) {
-        var editBar = $('<div class="edit-bar object"></div>').attr('id', fieldValueId + '-edit-bar');
+        var editBar = $('<div></div>').
+            attr('id', fieldValueId + '-edit-bar').
+            addClass('edit-bar').
+            addClass('object');
         var inner = $('<small></small>');
         inner.append('Add property: ');
         inner.append($('<input type="text" placeholder="Property name" />').attr('id', fieldValueId + '-key'));
-        var addBtn = $('<button>Add</button>');
-        addBtn.
+        var addBtn = $('<button>Add</button>').
             addClass('field-add').
-            addClass('property-add');
-        addBtn.
+            addClass('property-add').
             attr('data-field-id', fieldValueId).
             attr('data-object-namespace', namespace);
         this.renderEditBarContent(propertyTypes, fieldValueId, inner, addBtn);
@@ -401,7 +403,8 @@ onde.Onde.prototype.renderEditBarContent = function (typeList, fieldValueId, bas
 onde.Onde.prototype.renderTypeSelector = function (typeList, fieldValueId) {
     // Renders type selector from type list.
     // This selector is for field (item or property) value is not restricted into one particular type.
-    var typeOptions = $('<select></select>').attr('id', fieldValueId + '-type');
+    var typeOptions = $('<select></select>').
+        attr('id', fieldValueId + '-type');
     if (typeList && typeList.length) {
         for (var iapt = 0; iapt < typeList.length; ++iapt) {
             var optInfo = typeList[iapt];
@@ -488,28 +491,26 @@ onde.Onde.prototype.renderFieldValue = function (fieldName, fieldInfo, parentNod
             valueData = fieldInfo.value;
         }
         // String property
-        var tdN = $('<span class="value"></span>');
+        var tdN = $('<span></span>').
+            addClass('value');
         var fieldNode = null;
-        if (fieldInfo && fieldInfo.enum) {
+        if (fieldInfo.enum) {
             fieldNode = this.renderEnumField(fieldName, fieldInfo, valueData);
         } else {
             //TODO: Format
-            if (fieldInfo && fieldInfo.format == 'multiline') {
-                fieldNode = $('<textarea class="value-input"></textarea>');
-                fieldNode.attr('id', fieldValueId);
-                fieldNode.attr('name', fieldName);
-                if (typeof valueData == 'string') {
-                    fieldNode.val(valueData);
-                }
+            if (fieldInfo.format == 'multiline') {
+                fieldNode = $('<textarea></textarea>');
             } else {
-                fieldNode = $('<input type="text" class="value-input" />');
-                fieldNode.attr('id', fieldValueId);
-                fieldNode.attr('name', fieldName);
-                if (typeof valueData == 'string') {
-                    fieldNode.val(valueData);
-                }
+                fieldNode = $('<input type="text" />');
             }
-            if (fieldInfo && fieldInfo.title) {
+            fieldNode.
+                attr('id', fieldValueId).
+                attr('name', fieldName).
+                addClass('value-input');
+            if (typeof valueData == 'string') {
+                fieldNode.val(valueData);
+            }
+            if (fieldInfo.title) {
                 fieldNode.attr('title', fieldInfo.title);
             }
             if (fieldInfo['default']) {
@@ -526,19 +527,21 @@ onde.Onde.prototype.renderFieldValue = function (fieldName, fieldInfo, parentNod
         }
         tdN.append(fieldNode);
         if (fieldDesc) {
-            tdN.append(' ').append($('<small class="description"></small>').append($('<em></em>').text(fieldDesc)));
+            tdN.append(' ').append($('<small></small>').addClass('description').append($('<em></em>').text(fieldDesc)));
         }
         parentNode.append(tdN);
     } else if (fieldInfo.type == 'number' || fieldInfo.type == 'integer') {
         // Numeric property (number or integer)
-        var tdN = $('<span class="value"></span>');
+        var tdN = $('<span></span>').
+            addClass('value');
         var fieldNode = null;
-        if (fieldInfo && fieldInfo.enum) {
+        if (fieldInfo.enum) {
             fieldNode = this.renderEnumField(fieldName, fieldInfo, valueData);
         } else {
-            fieldNode = $('<input type="text" class="value-input" />');
-            fieldNode.attr('id', fieldValueId);
-            fieldNode.attr('name', fieldName);
+            fieldNode = $('<input type="text" />').
+                attr('id', fieldValueId).
+                attr('name', fieldName).
+                addClass('value-input');
             if (typeof valueData == "number") {
                 fieldNode.val(valueData);
             } else if (typeof valueData == "string") {
@@ -559,31 +562,31 @@ onde.Onde.prototype.renderFieldValue = function (fieldName, fieldInfo, parentNod
         fieldNode.attr('data-type', fieldInfo.type);
         tdN.append(fieldNode);
         if (fieldDesc) {
-            tdN.append(' ').append($('<small class="description"></small>').append($('<em></em>').text(fieldDesc)));
+            tdN.append(' ').append($('<small></small>').addClas('description').append($('<em></em>').text(fieldDesc)));
         }
         parentNode.append(tdN);
     } else if (fieldInfo.type == 'boolean') {
         // Boolean property
-        var tdN = $('<span class="value"></span>');
+        var tdN = $('<span></span>').
+            addClass('value');
         //TODO: Check box (allow value replacements/mapping)
-        var fieldNode = $('<input type="checkbox" class="value-input" />');
-        fieldNode.attr('id', fieldValueId);
-        fieldNode.attr('name', fieldName);
+        var fieldNode = $('<input type="checkbox" />').
+            attr('id', fieldValueId).
+            attr('name', fieldName).
+            addClass('value-input');
         if (valueData === true || valueData === 'true' || valueData === 1 || valueData === '1') {
             fieldNode.attr('checked', 'checked');
         }
-        if (fieldInfo) {
-            if (fieldInfo.title) {
-                fieldNode.attr('title', fieldInfo.title);
-            }
-            if ('default' in fieldInfo && fieldInfo['default']) {
-                fieldNode.attr('checked', 'checked');
-            }
+        if (fieldInfo.title) {
+            fieldNode.attr('title', fieldInfo.title);
+        }
+        if ('default' in fieldInfo && fieldInfo['default']) {
+            fieldNode.attr('checked', 'checked');
         }
         fieldNode.attr('data-type', fieldInfo.type);
         tdN.append(fieldNode);
         if (fieldDesc) {
-            tdN.append(' ').append($('<small class="description"></small>').append($('<em></em>').text(fieldDesc)));
+            tdN.append(' ').append($('<small></small>').addClass('description').append($('<em></em>').text(fieldDesc)));
         }
         parentNode.append(tdN);
     } else if (fieldInfo.type == 'object') {
@@ -594,9 +597,9 @@ onde.Onde.prototype.renderFieldValue = function (fieldName, fieldInfo, parentNod
     } else if (fieldInfo.type == 'array') {
         //TODO:FIXME:HACK:TEMP: Dummy array item (should make the renderer understands different kind of fieldInfo types)
         var itemSchema = { "type": "any" };
-        var contN = $('<ol start="0"></ol>');
-        contN.attr('id', fieldValueId);
-        contN.attr('data-type', 'array');
+        var contN = $('<ol start="0"></ol>').
+            attr('id', fieldValueId).
+            attr('data-type', 'array');
         var lastIndex = 0;
         if (valueData) {
             for (var idat = 0; idat < valueData.length; idat++) {
@@ -628,8 +631,10 @@ onde.Onde.prototype.renderFieldValue = function (fieldName, fieldInfo, parentNod
                 console.warn("Invalid items type: " + (typeof fieldInfo.items) + " (" + fieldName + ")");
             }
         }
-        var editBar = $('<div class="edit-bar array"></div>').
-            attr('id', fieldValueId + '-edit-bar');
+        var editBar = $('<div></div>').
+            attr('id', fieldValueId + '-edit-bar').
+            addClass('edit-bar').
+            addClass('array');
         var inner = $('<small></small>');
         inner.append('Add item: ');
         var addBtn = $('<button>Add</button>').
@@ -655,7 +660,9 @@ onde.Onde.prototype.renderObjectPropertyField = function (namespace, baseId, fie
     var fieldValueId = 'fieldvalue-' + fieldBaseId;
     var fieldType = null;
     var collectionType = false;
-    var rowN = $('<li></li>').attr('id', 'field-' + fieldBaseId).addClass('field');
+    var rowN = $('<li></li>').
+        attr('id', 'field-' + fieldBaseId).
+        addClass('field');
     fieldInfo = this._sanitizeFieldInfo(fieldInfo, valueData);
     if (fieldInfo) {
         //TODO: Support schema reference
@@ -734,19 +741,19 @@ onde.Onde.prototype.renderObjectPropertyField = function (namespace, baseId, fie
         // Add description to label if the field is collapsible
         var fieldDesc = fieldInfo.description || fieldInfo.title;
         if (fieldDesc) {
-            labelN.append(' ').append($('<small class="description"></small>').append($('<em></em>').text(fieldDesc)));
+            labelN.append(' ').append($('<small></small>').addClass('description').append($('<em></em>').text(fieldDesc)));
         }
     }
     if (fieldInfo['$ref']) {
         //TODO: Deal with schema reference
-        valN.append($('<span class="value"></span>').text(fieldInfo['$ref']));
+        valN.append($('<span></span>').addClass('value').text(fieldInfo['$ref']));
     } else if (onde.PRIMITIVE_TYPES.indexOf(fieldType) < 0) {
         //TODO: Deal with schema reference (and unsupported types)
-        valN.append($('<span class="value"></span>').text(fieldType));
+        valN.append($('<span></span>').addClass('value').text(fieldType));
     } else {
         if (valueData && namespace === '' && this.documentSchema.primaryProperty == propName) {
             // Primary property is not editable
-            valN.append($('<span class="value"></span>').append($('<strong></strong>').text(valueData)));
+            valN.append($('<span></span>').addClass('value').append($('<strong></strong>').text(valueData)));
             valN.append($('<input type="hidden" />').attr('name', fieldName).attr('value', valueData));
         } else {
             this.renderFieldValue(fieldName, fieldInfo, valN, valueData);
@@ -764,31 +771,32 @@ onde.Onde.prototype.renderListItemField = function (namespace, fieldInfo, index,
     var fieldBaseId = this._fieldNameToID(fieldName);
     var fieldValueId = 'fieldvalue-' + fieldBaseId;
     var collectionType = false;
-    var rowN = $('<li></li>');
-    rowN.attr('id', 'field-' + fieldBaseId);
+    var rowN = $('<li></li>').
+        attr('id', 'field-' + fieldBaseId).
+        addClass('field').
+        addClass('array-item');
     fieldInfo = this._sanitizeFieldInfo(fieldInfo, valueData);
-    rowN.addClass('field');
     if (typeof fieldInfo.type == 'string') {
         rowN.addClass(fieldInfo.type);
         collectionType = (fieldInfo.type == 'object' || fieldInfo.type == 'array');
     }
-    rowN.addClass('array-item');
     var deleterShown = false;
     var labelN = null;
     var valN = rowN;
     if (fieldInfo.type == 'object' && fieldInfo.display == 'inline') {
     } else {
-        var labelN = $('<label></label>');
+        var labelN = $('<label></label>').
+            attr('for', fieldValueId).
+            addClass('field-name').
+            addClass('array-index');
         rowN.append(labelN);
-        labelN.attr('for', fieldValueId);
-        labelN.addClass('field-name');
-        labelN.addClass('array-index');
         labelN.append('&nbsp;');
         if ((fieldInfo.type == 'object' && fieldInfo.display != 'inline') || fieldInfo.type == 'array') {
             rowN.addClass('collapsible');
             labelN.addClass('collapser');
-            valN = $('<div class="collapsible-panel"></div>').
+            valN = $('<div></div>').
                 attr('id', 'fieldvalue-container-' + fieldBaseId).
+                addClass('collapsible-panel').
                 addClass('fieldvalue-container');
             rowN.append(valN);
             if (this.initialRendering && this.options.collapsedCollapsibles) {
