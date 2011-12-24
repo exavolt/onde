@@ -991,7 +991,7 @@ onde.Onde.prototype._buildProperty = function (propName, propInfo, path, formDat
             }
         }
         result.data = lsData;
-        result.noData = result.data.length > 0;
+        result.noData = result.data.length == 0;
         if (lsErrCount) {
             result.errorCount += lsErrCount;
             result.errorData = lsErrData;
@@ -1007,7 +1007,7 @@ onde.Onde.prototype._buildProperty = function (propName, propInfo, path, formDat
             valData = formData[fieldName];
         }
         if (dataType == 'boolean') {
-            if (valData === true || valData === 'true' || valData === 'on') { //TODO: More qualifications
+            if (valData === 'on' || valData === 'true' || valData === 'checked' || valData === 1 || valData === true) {
                 result.data = true;
                 result.noData = false;
             } else if (propInfo.required) {
@@ -1019,7 +1019,7 @@ onde.Onde.prototype._buildProperty = function (propName, propInfo, path, formDat
             if (valData) {
                 result.noData = false;
                 if (dataType == 'integer') {
-                    result.data = parseInt(valData, 10); //TODO: Radix depends on the radix specified by schema
+                    result.data = parseInt(valData, 10); //TODO: Radix depends on the radix specified by the schema
                     if (isNaN(result.data)) {
                         result.errorCount += 1;
                         result.errorData = 'value-error';
@@ -1032,7 +1032,7 @@ onde.Onde.prototype._buildProperty = function (propName, propInfo, path, formDat
                     }
                 } else if (dataType == 'string') {
                     result.data = valData;
-                } else { //TODO: More types
+                } else {
                     console.warn("Unsupported type: " + dataType + " (" + fieldName + ")");
                     result.errorCount += 1;
                     result.errorData = 'type-error';
@@ -1056,7 +1056,7 @@ onde.Onde.prototype._buildProperty = function (propName, propInfo, path, formDat
 };
 
 onde.Onde.prototype._buildObject = function (schema, path, formData) {
-    var result = { data: {}, errorCount: 0, errorData: {} };
+    var result = { data: {}, errorCount: 0, errorData: {}, noData: true };
     var props = schema ? schema.properties || {} : {};
     for (var propName in props) {
         if (!props.hasOwnProperty(propName)) {
@@ -1066,18 +1066,19 @@ onde.Onde.prototype._buildObject = function (schema, path, formData) {
         var cRes = this._buildProperty(propName, propInfo, path, formData);
         if (!cRes.noData) {
             result.data[propName] = cRes.data;
+            result.noData = false;
         }
         if (cRes.errorCount) {
             result.errorCount += cRes.errorCount;
             result.errorData[propName] = cRes.errorData;
         }
     }
-    if (!schema || schema.additionalProperties) {
+    if (!schema || schema.additionalProperties || !schema.properties) {
         //TODO: Validate againts schema for additional properties
         var cpath = path + this.fieldNamespaceSeparator;
         for (var fieldName in formData) {
-            var dVal = formData[fieldName];
-            if (!dVal) {
+            var valData = formData[fieldName];
+            if (!valData) {
                 continue;
             }
             // Filter the form data
@@ -1118,37 +1119,48 @@ onde.Onde.prototype._buildObject = function (schema, path, formData) {
                         }
                     }
                 } else {
+                    var noData = true;
                     // Get the type from the element
                     dataType = $('#fieldvalue-' + this._fieldNameToID(fieldName)).attr('data-type');
-                    if (dataType == 'number') {
-                        dVal = parseFloat(dVal); //TODO: Guard
-                    } else if (dataType == 'integer') {
-                        dVal = parseInt(dVal, 10); //TODO: Guard
+                    if (dataType == 'integer') {
+                        var dVal = parseInt(valData, 10); //TODO: Radix depends on the radix specified by the schema
+                        if (isNaN(dVal)) {
+                            result.errorCount += 1;
+                            result.errorData[propName] = 'value-error';
+                        } else {
+                            result.data[propName] = dVal;
+                        }
+                    } else if (dataType == 'number') {
+                        var dVal = parseFloat(valData);
+                        if (isNaN(dVal)) {
+                            result.errorCount += 1;
+                            result.errorData[propName] = 'value-error';
+                        } else {
+                            result.data[propName] = dVal;
+                        }
                     } else if (dataType == 'boolean') {
-                        //TODO: Guard
-                        dVal = (dVal === 'on' || dVal === 'true' || dVal === 'checked' || dVal !== 0 || dVal === true);
+                        result.data[propName] = (valData === 'on' || valData === 'true' || valData === 'checked' || valData === 1 || valData === true);
                     } else if (dataType == 'string') {
+                        result.data[propName] = valData;
                     } else {
-                        console.warn("Unsupported type: " + dataType + " (" + fieldName + ")");
-                        dVal = null; //CHECK: Null it?
-                        //TODO: Guard
+                        console.warn("Unsupported type: " + dataType + " (" + propName + ")");
                         result.errorCount += 1;
                         result.errorData[propName] = 'type-error';
                     }
-                    result.data[propName] = dVal;
                 }
             }
         }
     }
-    if (schema && schema.required) {
-        var hasProp = false;
-        for (var propName in result.data) {
-            if (result.data.hasOwnProperty(propName)) {
-                hasProp = true;
-                break;
-            }
+    var hasProp = false;
+    for (var propName in result.data) {
+        if (result.data.hasOwnProperty(propName)) {
+            hasProp = true;
+            break;
         }
-        if (!hasProp) {
+    }
+    result.noData = !hasProp;
+    if (!hasProp) {
+        if (schema && schema.required) {
             result.errorCount += 1;
             result.errorData = 'value-required';
         }
