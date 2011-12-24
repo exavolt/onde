@@ -256,9 +256,9 @@ onde.Onde.prototype.renderObject = function (schema, parentNode, namespace, data
     }
     var objectId = 'field-' + this._fieldNameToID(namespace);
     var fieldValueId = 'fieldvalue-' + this._fieldNameToID(namespace);
-    var baseNode = $('<ul></ul>');
-    baseNode.attr('id', fieldValueId);
-    baseNode.attr('data-type', 'object'); //CHECK: Always?
+    var baseNode = $('<ul></ul>').
+        attr('id', fieldValueId).
+        attr('data-type', 'object'); //CHECK: Always?
     if (schema.display) {
         baseNode.addClass(schema.display);
     }
@@ -328,8 +328,7 @@ onde.Onde.prototype.renderObject = function (schema, parentNode, namespace, data
     }
     // Toolbar if the object can has additional property
     if ('additionalProperties' in schema) {
-        var editBar = $('<div class="edit-bar object"></div>');
-        editBar.attr('id', fieldValueId + '-edit-bar');
+        var editBar = $('<div class="edit-bar object"></div>').attr('id', fieldValueId + '-edit-bar');
         var inner = $('<small></small>');
         inner.append('Add property: ');
         inner.append($('<input type="text" placeholder="Property name" />').attr('id', fieldValueId + '-key'));
@@ -373,9 +372,9 @@ onde.Onde.prototype.renderEnumField = function (fieldName, fieldInfo, valueData)
         var fieldBaseId = this._fieldNameToID(fieldName);
         if (fieldInfo.enum.length > 1) {
             var optN = null;
-            fieldNode = $('<select></select>');
-            fieldNode.attr('id', 'fieldvalue-' + fieldBaseId);
-            fieldNode.attr('name', fieldName);
+            fieldNode = $('<select></select>').
+                attr('id', 'fieldvalue-' + fieldBaseId).
+                attr('name', fieldName);
             if (!fieldInfo.required) {
                 // Add the 'null' option if the field is not required
                 fieldNode.append('<option value=""></option>');
@@ -390,10 +389,10 @@ onde.Onde.prototype.renderEnumField = function (fieldName, fieldInfo, valueData)
                 fieldNode.append(optN);
             }
         } else {
-            fieldNode = $('<input type="text" readonly="readonly" />');
-            fieldNode.attr('id', 'fieldvalue-' + fieldBaseId);
-            fieldNode.attr('name', fieldName);
-            fieldNade.attr('value', fieldInfo.enum[0]);
+            fieldNode = $('<input type="text" readonly="readonly" />').
+                attr('id', 'fieldvalue-' + fieldBaseId).
+                attr('name', fieldName).
+                attr('value', fieldInfo.enum[0]);
         }
     }
     return fieldNode;
@@ -429,14 +428,13 @@ onde.Onde.prototype.renderEditBarContent = function (typeList, fieldValueId, bas
         }
     } else {
         // Render type list as type selector
-        baseNode.append(this.renderTypeSelector(typeList, fieldValueId));
+        baseNode.append(this.renderTypeSelector(typeList, fieldValueId)).append(' ');
     }
 }
 onde.Onde.prototype.renderTypeSelector = function (typeList, fieldValueId) {
     // Renders type selector from type list.
     // This selector is for field (item or property) value is not restricted into one particular type.
-    var typeOptions = $('<select></select> ');
-    typeOptions.attr('id', fieldValueId + '-type');
+    var typeOptions = $('<select></select>').attr('id', fieldValueId + '-type');
     if (typeList && typeList.length) {
         for (var iapt = 0; iapt < typeList.length; ++iapt) {
             var optInfo = typeList[iapt];
@@ -462,10 +460,10 @@ onde.Onde.prototype.renderTypeSelector = function (typeList, fieldValueId) {
                 var optText = optInfo['name'] || optType;
                 var optSchemaName = 'schema-' + this._generateFieldId();
                 this.internalSchemas[optSchemaName] = optInfo;
-                var optN = $('<option></option>');
+                var optN = $('<option></option>').
+                    attr('value', optType).
+                    attr('data-schema-name', optSchemaName);
                 optN.text(optText);
-                optN.attr('value', optType);
-                optN.attr('data-schema-name', optSchemaName);
                 typeOptions.append(optN);
             } else {
                 console.error("SchemaError: Invalid type in type list");
@@ -663,14 +661,14 @@ onde.Onde.prototype.renderFieldValue = function (fieldName, fieldInfo, parentNod
                 console.warn("Invalid items type: " + (typeof fieldInfo.items) + " (" + fieldName + ")");
             }
         }
-        var editBar = $('<div class="edit-bar array"></div>');
-        editBar.attr('id', fieldValueId + '-edit-bar');
+        var editBar = $('<div class="edit-bar array"></div>').
+            attr('id', fieldValueId + '-edit-bar');
         var inner = $('<small></small>');
         inner.append('Add item: ');
-        var addBtn = $('<button>Add</button>');
-        addBtn.addClass('field-add').
-            addClass('item-add');
-        addBtn.attr('data-field-id', fieldValueId).
+        var addBtn = $('<button>Add</button>').
+            addClass('field-add').
+            addClass('item-add').
+            attr('data-field-id', fieldValueId).
             attr('data-object-namespace', fieldName).
             attr('data-last-index', lastIndex);
         this.renderEditBarContent(itemTypes, fieldValueId, inner, addBtn);
@@ -690,10 +688,8 @@ onde.Onde.prototype.renderObjectPropertyField = function (namespace, baseId, fie
     var fieldValueId = 'fieldvalue-' + fieldBaseId;
     var fieldType = null;
     var collectionType = false;
-    var rowN = $('<li></li>');
-    rowN.attr('id', 'field-' + fieldBaseId);
+    var rowN = $('<li></li>').attr('id', 'field-' + fieldBaseId).addClass('field');
     fieldInfo = this._sanitizeFieldInfo(fieldInfo, valueData);
-    rowN.addClass('field');
     if (fieldInfo) {
         //TODO: Support schema reference
         //TODO: Other types of type
@@ -722,19 +718,20 @@ onde.Onde.prototype.renderObjectPropertyField = function (namespace, baseId, fie
     collectionType = (fieldType == 'object' || fieldType == 'array');
     //rowN.addClass('property');
     //rowN.addClass(baseId + '-property');
-    var labelN = $('<label></label>');
+    var labelN = $('<label></label>').
+        attr('for', fieldValueId).
+        addClass('field-name');
     rowN.append(labelN);
-    labelN.attr('for', fieldValueId);
-    labelN.addClass('field-name');
     var valN = null;
     if ((fieldType == 'object' && fieldInfo.display != 'inline') || fieldType == 'array') {
         // Some special treatments for collapsible field
         rowN.addClass('collapsible');
         labelN.addClass('collapser');
         labelN.attr('data-fieldvalue-container-id', 'fieldvalue-container-' + fieldBaseId);
-        valN = $('<div class="collapsible-panel"></div>');
-        valN.addClass('fieldvalue-container');
-        valN.attr('id', 'fieldvalue-container-' + fieldBaseId);
+        valN = $('<div></div>').
+            attr('id', 'fieldvalue-container-' + fieldBaseId).
+            addClass('collapsible-panel').
+            addClass('fieldvalue-container');
         rowN.append(valN);
         if (this.initialRendering && this.options.collapsedCollapsibles) {
             valN.hide();
@@ -823,9 +820,9 @@ onde.Onde.prototype.renderListItemField = function (namespace, fieldInfo, index,
         if ((fieldInfo.type == 'object' && fieldInfo.display != 'inline') || fieldInfo.type == 'array') {
             rowN.addClass('collapsible');
             labelN.addClass('collapser');
-            valN = $('<div class="collapsible-panel"></div>');
-            valN.addClass('fieldvalue-container');
-            valN.attr('id', 'fieldvalue-container-' + fieldBaseId);
+            valN = $('<div class="collapsible-panel"></div>').
+                attr('id', 'fieldvalue-container-' + fieldBaseId).
+                addClass('fieldvalue-container');
             rowN.append(valN);
             if (this.initialRendering && this.options.collapsedCollapsibles) {
                 valN.hide();
