@@ -988,10 +988,15 @@ onde.Onde.prototype._buildProperty = function (propName, propInfo, path, formDat
             }
         }
         result.data = lsData;
-        result.noData = false;
+        result.noData = result.data.length > 0;
         if (lsErrCount) {
             result.errorCount += lsErrCount;
             result.errorData = lsErrData;
+        }
+        if (propInfo.required && !result.data.length) {
+            result.errorCount += 1;
+            //TODO: How to attach the error information here?
+            result.errorData = 'value-required';
         }
     } else {
         var valData = null;
