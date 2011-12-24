@@ -1056,6 +1056,9 @@ onde.Onde.prototype._buildObject = function (schema, path, formData) {
     var result = { data: {}, errorCount: 0, errorData: {} };
     var props = schema ? schema.properties || {} : {};
     for (var propName in props) {
+        if (!props.hasOwnProperty(propName)) {
+            continue;
+        }
         var propInfo = props[propName];
         var cRes = this._buildProperty(propName, propInfo, path, formData);
         if (!cRes.noData) {
@@ -1132,6 +1135,19 @@ onde.Onde.prototype._buildObject = function (schema, path, formData) {
                     result.data[propName] = dVal;
                 }
             }
+        }
+    }
+    if (schema && schema.required) {
+        var hasProp = false;
+        for (var propName in result.data) {
+            if (result.data.hasOwnProperty(propName)) {
+                hasProp = true;
+                break;
+            }
+        }
+        if (!hasProp) {
+            result.errorCount += 1;
+            result.errorData = 'value-required';
         }
     }
     return result;
