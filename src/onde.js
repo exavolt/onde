@@ -112,7 +112,7 @@ onde.Onde = function (formElement, schema, documentInst, opts) {
     var _inst = this;
     //this.options = opts;
     this.externalSchemas = {}; // A hash of cached external schemas. The key is the full URL of the schema.
-    this.innerSchemas = {};
+    this.internalSchemas = {}; // List of schema for sub-objects
     this.fieldNamespaceSeparator = '.';
     this.fieldNamespaceSeparatorRegex = /\./g;
     this.formElement = $(formElement);
@@ -420,7 +420,7 @@ onde.Onde.prototype.renderEditBarContent = function (typeList, fieldValueId, bas
                     //TODO: Check the type, it must be string and the value must be primitive
                     var optText = optInfo['name'] || optType;
                     var optSchemaName = 'schema-' + this._generateFieldId();
-                    this.innerSchemas[optSchemaName] = optInfo;
+                    this.internalSchemas[optSchemaName] = optInfo;
                     controlNode.
                         attr('data-object-type', optType).
                         attr('data-schema-name', optSchemaName);
@@ -461,7 +461,7 @@ onde.Onde.prototype.renderTypeSelector = function (typeList, fieldValueId) {
                 //TODO: Check the type, it must be string and the value must be primitive
                 var optText = optInfo['name'] || optType;
                 var optSchemaName = 'schema-' + this._generateFieldId();
-                this.innerSchemas[optSchemaName] = optInfo;
+                this.internalSchemas[optSchemaName] = optInfo;
                 var optN = $('<option></option>');
                 optN.text(optText);
                 optN.attr('value', optType);
@@ -623,7 +623,7 @@ onde.Onde.prototype.renderFieldValue = function (fieldName, fieldInfo, parentNod
         parentNode.append(tdN);
     } else if (fieldInfo.type == 'object') {
         //if (fieldInfo.additionalItems) {
-        //  this.innerSchemas[fieldName] = fieldInfo;
+        //  this.internalSchemas[fieldName] = fieldInfo;
         //}
         this.renderObject(fieldInfo, parentNode, fieldName, valueData);
     } else if (fieldInfo.type == 'array') {
@@ -851,21 +851,14 @@ onde.Onde.prototype.renderListItemField = function (namespace, fieldInfo, index,
 };
 
 
-onde.Onde.prototype.onAddObjectProperty = function (handle) {
-    //TODO: Check if the key already used
+onde.Onde.prototype._getFieldInfo = function (handle) {
     var baseId = handle.attr('data-field-id');
-    var propName = $('#' + baseId + '-key').val();
-    if (!propName) {
-        //TODO: Nice [unobstrusive] error message
+    if (!baseId) {
+        console.error('Internal error: element has no field id data');
         return;
     }
-    if (!propName.match(/^[a-z_][a-z0-9_]+$/i)) {
-        return;
-    }
-    var namespace = handle.attr('data-object-namespace');
-    var ftype = handle.attr('data-object-type') || $('#' + baseId + '-type').val();
-    var fieldInfo = null;
     var schemaName = null;
+    // Element which contains information about the field
     var typeSel = $('#' + baseId + '-type');
     if (typeSel.length) {
         typeSel = typeSel[0];
@@ -881,10 +874,28 @@ onde.Onde.prototype.onAddObjectProperty = function (handle) {
         // The last possible place to get the name of the schema
         schemaName = handle.attr('data-schema-name');
     }
-    if (schemaName) {
-        // Get the schema
-        fieldInfo = this.innerSchemas[schemaName];
+    // Return the schema (if the name is valid)
+    return schemaName ? this.internalSchemas[schemaName] : null;
+};
+
+
+onde.Onde.prototype.onAddObjectProperty = function (handle) {
+    //TODO: Check if the key already used
+    var baseId = handle.attr('data-field-id');
+    var propName = $('#' + baseId + '-key').val();
+    if (!propName) {
+        //TODO: Nice [unobstrusive] error message
+        alert("Property name must not be empty");
+        return;
     }
+    if (!propName.match(/^[a-z_][a-z0-9_]+$/i)) {
+        //TODO: Nice [unobstrusive] error message
+        alert("Invalid property name");
+        return;
+    }
+    var namespace = handle.attr('data-object-namespace');
+    var ftype = handle.attr('data-object-type') || $('#' + baseId + '-type').val();
+    var fieldInfo = this._getFieldInfo(handle);
     if (!fieldInfo) {
         // No schema found, build it
         fieldInfo = { type: ftype, _deletable: true };
@@ -916,27 +927,7 @@ onde.Onde.prototype.onAddListItem = function (handle) {
     handle.attr('data-last-index', lastIndex);
     var namespace = handle.attr('data-object-namespace');
     var ftype = handle.attr('data-object-type') || $('#' + baseId + '-type').val();
-    var fieldInfo = null;
-    var schemaName = null;
-    var typeSel = $('#' + baseId + '-type');
-    if (typeSel.length) {
-        typeSel = typeSel[0];
-        if (typeSel.options) {
-            // The type is from a selection
-            schemaName = $(typeSel.options[typeSel.selectedIndex]).attr('data-schema-name');
-        } else {
-            // Single type
-            schemaName = typeSel.attr('data-schema-name');
-        }
-    }
-    if (!schemaName) {
-        // The last possible place to get the name of the schema
-        schemaName = handle.attr('data-schema-name');
-    }
-    if (schemaName) {
-        // Get the schema
-        fieldInfo = this.innerSchemas[schemaName];
-    }
+    var fieldInfo = this._getFieldInfo(handle);
     if (!fieldInfo) {
         // No schema found, build it
         fieldInfo = { type: ftype };
