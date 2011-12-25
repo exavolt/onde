@@ -723,19 +723,26 @@ onde.Onde.prototype.renderObjectPropertyField = function (namespace, baseId, fie
     if ((namespace === '' || namespace.indexOf('.') < 0) && 
       this.documentSchema.primaryProperty && 
       this.documentSchema.primaryProperty == propName) {
+        // Primary property
         rowN.addClass('primary');
-        labelN.append('<strong>' + $.htmlEscape(labelText) + '</strong><span class="required-marker" title="Required field">*</span>: ');
+        labelN.append($('<strong></strong>').text(labelText));
     } else {
-        if (fieldInfo.required) {
-            labelN.append($.htmlEscape(labelText) + '<span class="required-marker" title="Required field">*</span>: ');
-        } else {
-            labelN.append($.htmlEscape(labelText) + ': ');
-        }
+        labelN.text(labelText);
     }
+    if (fieldInfo.required || rowN.hasClass('primary')) {
+        // Required field
+        labelN.append($('<span></span>').addClass('required-marker').attr('title', this.tr("Required field")).text('*'));
+    }
+    labelN.append(': ');
     var actionMenu = '';
     //TODO: More actions (only if qualified)
     if (fieldInfo._deletable) {
-        actionMenu = '<small> <button class="field-delete" data-id="' + $.htmlEscape(fieldId) + '" title="Delete property">delete</button> <small>';
+        actionMenu = $('<small></small>').append(' ').append($('<button></button>').
+            attr('title', this.tr("Delete item")).
+            attr('data-id', fieldId).
+            addClass('field-delete').
+            text(this.tr("delete"))
+            ).append(' ');
     }
     if (collectionType) {
         labelN.append(actionMenu);
@@ -744,7 +751,11 @@ onde.Onde.prototype.renderObjectPropertyField = function (namespace, baseId, fie
         // Add description to label if the field is collapsible
         var fieldDesc = fieldInfo.description || fieldInfo.title;
         if (fieldDesc) {
-            labelN.append(' ').append($('<small></small>').addClass('description').append($('<em></em>').text(fieldDesc)));
+            labelN.append(' ').append($('<small></small>')
+                .addClass('description')
+                .append($('<em></em>')
+                .text(fieldDesc)
+                ));
         }
     }
     if (fieldInfo['$ref']) {
@@ -812,7 +823,12 @@ onde.Onde.prototype.renderListItemField = function (namespace, fieldInfo, index,
         labelN.append('&nbsp; ');
         //TODO: More actions (only if qualified)
         if (collectionType) {
-            labelN.append('<small> <button class="field-delete" data-id="' + $.htmlEscape(fieldId) + '" title="Delete item">delete</button> <small>');
+            labelN.append($('<small></small>').append(' ').append($('<button></button>').
+                attr('title', this.tr("Delete item")).
+                attr('data-id', fieldId).
+                addClass('field-delete').
+                text(this.tr("delete"))
+                ).append(' '));
             deleterShown = true;
         }
     }
@@ -821,7 +837,12 @@ onde.Onde.prototype.renderListItemField = function (namespace, fieldInfo, index,
     }
     this.renderFieldValue(fieldName, fieldInfo, valN, valueData);
     if (!deleterShown) {
-        valN.append('<small> <button class="field-delete" data-id="' + $.htmlEscape(fieldId) + '" title="Delete item">delete</button> <small>');
+        valN.append($('<small></small>').append(' ').append($('<button></button>').
+            attr('title', this.tr("Delete item")).
+            attr('data-id', fieldId).
+            addClass('field-delete').
+            text(this.tr("delete"))
+            ).append(' '));
     }
     return rowN;
 };
@@ -1173,4 +1194,9 @@ onde.Onde.prototype.getData = function () {
     }
     this.formElement.find('.onde-panel').find('.error').removeClass('error');
     return this._buildObject(this.documentSchema, this.instanceId, formData);
+};
+
+
+onde.Onde.prototype.tr = function (text) {
+    return text;
 };

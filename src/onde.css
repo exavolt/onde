@@ -108,7 +108,7 @@
     border-bottom: 1px solid #d9d9d9;
     background-color: #f3f3f3;
 }
-.onde-panel label.field-name { color: #333;/* background-color: #fff; border-top-left-radius: 4px; */}
+.onde-panel label.field-name { color: #4f4f4f;/* color: #333; background-color: #fff; border-top-left-radius: 4px; */}
 .onde-panel label.field-name.collapser { display: block !important; background-color: #fff;/* margin-bottom: 2px; */}
 .onde-panel .field.primary > label.field-name { text-decoration: underline; }
 .onde-panel ul {
