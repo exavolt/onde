@@ -1,7 +1,7 @@
 {
     "type": "object",
     "name": "NPM package.json",
-    "description": "Package manifest file for Node.JS modules. Note that this is incomplete.",
+    "description": "Package manifest file for Node.JS modules. Note that this is incomplete. http://npmjs.org/doc/json.html",
     "properties": {
         "name": {
             "type": "string",
