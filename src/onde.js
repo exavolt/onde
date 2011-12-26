@@ -572,7 +572,7 @@ onde.Onde.prototype.renderFieldValue = function (fieldName, fieldInfo, parentNod
         valueContainer.append(fieldValueNode);
         if (fieldDesc) {
             valueContainer.append(' ').append($('<small></small>').
-                addClas('description').
+                addClass('description').
                 append($('<em></em>').text(fieldDesc)));
         }
         parentNode.append(valueContainer);

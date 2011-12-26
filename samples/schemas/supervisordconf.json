@@ -1,6 +1,7 @@
 {
     "type": "object",
     "name": "supervisord.conf",
+    "description": "The Supervisor configuration file is used by both supervisord and supervisorctl. http://supervisord.org/configuration.html",
     "properties": {
         "unix_http_server": {
             "type": "object",
@@ -49,22 +50,80 @@
         "supervisord": {
             "type": "object",
             "properties": {
-                "logfile": { "type": "string" },
-                "logfile_maxbytes": { "type": "string" },
-                "logfile_backups": { "type": "number" },
-                "loglevel": { "type": "string" },
-                "pidfile": { "type": "string", "format": "url.path" },
+                "logfile": {
+                    "description": "The path to the activity log of the supervisord process. This option can include the value %(here)s, which expands to the directory in which the supervisord configuration file was found.",
+                    "type": "string",
+                    "default": "$CWD/supervisord.log"
+                    },
+                "logfile_maxbytes": {
+                    "type": "string",
+                    "default": "50MB"
+                    },
+                "logfile_backups": {
+                    "description": "The number of backups to keep around resulting from activity log file rotation. Set this to 0 to indicate an unlimited number of backups.",
+                    "type": "integer",
+                    "default": 10
+                    },
+                "loglevel": {
+                    "type": "string",
+                    "default": "info"
+                    },
+                "pidfile": {
+                    "type": "string",
+                    "format": "url.path",
+                    "default": "$CWD/supervisord.pid"
+                    },
+                "umask": {
+                    "default": "022",
+                    "type": "integer",
+                    "format": "octal"
+                    },
                 "nodaemon": { "type": "boolean" },
-                "minfds": { "type": "number" },
-                "minprocs": { "type": "number" },
-                "umask": { "type": "integer", "format": "octal" },
-                "user": { "type": "string" },
-                "identifier": { "type": "string" },
-                "directory": { "type": "string", "format": "url.path" },
+                "minfds": {
+                    "type": "integer",
+                    "default": 1024
+                    },
+                "minprocs": {
+                    "type": "number",
+                    "default": 200
+                    },
                 "nocleanup": { "type": "boolean" },
                 "childlogdir": { "type": "string", "format": "url.path" },
+                "user": { "type": "string" },
+                "directory": { "type": "string", "format": "url.path" },
                 "strip_ansi": { "type": "boolean" },
-                "environment": { "type": "object" }
+                "environment": { "type": "object", "additionalProperties": "string" },
+                "identifier": {
+                    "type": "string",
+                    "default": "supervisor"
+                    }
+                }
+            },
+        "supervisorctl": {
+            "type": "object",
+            "properties": {
+                "serverurl": {
+                    "description": "The URL that should be used to access the supervisord server, e.g. http://localhost:9001. For UNIX domain sockets, use unix:///absolute/path/to/file.sock.",
+                    "default": "http://localhost:9001",
+                    "type": "string"
+                    },
+                "username": {
+                    "description": "The username to pass to the supervisord server for use in authentication. This should be same as username from the supervisord server configuration for the port or UNIX domain socket you’re attempting to access.",
+                    "type": "string"
+                    },
+                "password": {
+                    "description": "The password to pass to the supervisord server for use in authentication. This should be the cleartext version of password from the supervisord server configuration for the port or UNIX domain socket you’re attempting to access. This value cannot be passed as a SHA hash. Unlike other passwords specified in this file, it must be provided in cleartext.",
+                    "type": "string"
+                    },
+                "prompt": {
+                    "description": "String used as supervisorctl prompt.",
+                    "default": "supervisor",
+                    "type": "string"
+                    },
+                "history_file": {
+                    "description": "A path to use as the readline persistent history file. If you enable this feature by choosing a path, your supervisorctl commands will be kept in the file, and you can use readline (e.g. arrow-up) to invoke commands you performed in your last supervisorctl session.",
+                    "type": "string"
+                    }
                 }
             }
         }
