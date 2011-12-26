@@ -96,7 +96,8 @@ if (!String.prototype.endsWith) {
 
 (function($){
     $.htmlEscape = function(text) {
-        return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\"/g, '&quot;');
+        return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').
+            replace(/>/g, '&gt;').replace(/\"/g, '&quot;');
     };
 })(jQuery);
 
@@ -497,7 +498,7 @@ onde.Onde.prototype.renderFieldValue = function (fieldName, fieldInfo, parentNod
             valueData = fieldInfo.value;
         }
         // String property
-        var tdN = $('<span></span>').
+        var valueContainer = $('<span></span>').
             addClass('value');
         var fieldValueNode = null;
         if (fieldInfo.enum) {
@@ -531,14 +532,16 @@ onde.Onde.prototype.renderFieldValue = function (fieldName, fieldInfo, parentNod
         if (fieldInfo.readonly) {
             fieldValueNode.attr('readonly', 'readonly');
         }
-        tdN.append(fieldValueNode);
+        valueContainer.append(fieldValueNode);
         if (fieldDesc) {
-            tdN.append(' ').append($('<small></small>').addClass('description').append($('<em></em>').text(fieldDesc)));
+            valueContainer.append(' ').append($('<small></small>').
+                addClass('description').
+                append($('<em></em>').text(fieldDesc)));
         }
-        parentNode.append(tdN);
+        parentNode.append(valueContainer);
     } else if (fieldInfo.type == 'number' || fieldInfo.type == 'integer') {
         // Numeric property (number or integer)
-        var tdN = $('<span></span>').
+        var valueContainer = $('<span></span>').
             addClass('value');
         var fieldValueNode = null;
         if (fieldInfo.enum) {
@@ -566,14 +569,16 @@ onde.Onde.prototype.renderFieldValue = function (fieldName, fieldInfo, parentNod
             }
         }
         fieldValueNode.attr('data-type', fieldInfo.type);
-        tdN.append(fieldValueNode);
+        valueContainer.append(fieldValueNode);
         if (fieldDesc) {
-            tdN.append(' ').append($('<small></small>').addClas('description').append($('<em></em>').text(fieldDesc)));
+            valueContainer.append(' ').append($('<small></small>').
+                addClas('description').
+                append($('<em></em>').text(fieldDesc)));
         }
-        parentNode.append(tdN);
+        parentNode.append(valueContainer);
     } else if (fieldInfo.type == 'boolean') {
         // Boolean property
-        var tdN = $('<span></span>').
+        var valueContainer = $('<span></span>').
             addClass('value');
         //TODO: Check box (allow value replacements/mapping)
         var fieldValueNode = $('<input type="checkbox" />').
@@ -590,11 +595,13 @@ onde.Onde.prototype.renderFieldValue = function (fieldName, fieldInfo, parentNod
             fieldValueNode.attr('checked', 'checked');
         }
         fieldValueNode.attr('data-type', fieldInfo.type);
-        tdN.append(fieldValueNode);
+        valueContainer.append(fieldValueNode);
         if (fieldDesc) {
-            tdN.append(' ').append($('<small></small>').addClass('description').append($('<em></em>').text(fieldDesc)));
+            valueContainer.append(' ').append($('<small></small>').
+                addClass('description').
+                append($('<em></em>').text(fieldDesc)));
         }
-        parentNode.append(tdN);
+        parentNode.append(valueContainer);
     } else if (fieldInfo.type == 'object') {
         //if (fieldInfo.additionalItems) {
         //  this.internalSchemas[fieldName] = fieldInfo;
@@ -656,8 +663,8 @@ onde.Onde.prototype.renderFieldValue = function (fieldName, fieldInfo, parentNod
         parentNode.append(editBar);
         return;
     } else {
-        var tdN = $('<span class="value">InternalError: Unsupported property type: <tt>' + $.htmlEscape(fieldInfo.type) + '</tt></span>');
-        parentNode.append(tdN);
+        var valueContainer = $('<span class="value">InternalError: Unsupported property type: <tt>' + $.htmlEscape(fieldInfo.type) + '</tt></span>');
+        parentNode.append(valueContainer);
     }
 };
 
