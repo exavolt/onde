@@ -303,13 +303,16 @@ onde.Onde.prototype.renderObject = function (schema, parentNode, namespace, data
             addClass('edit-bar').
             addClass('object');
         var inner = $('<small></small>');
-        inner.append('Add property: ');
-        inner.append($('<input type="text" placeholder="Property name" />').attr('id', fieldValueId + '-key'));
-        var addBtn = $('<button>Add</button>').
+        inner.append(this.tr('Add property: '));
+        inner.append($('<input type="text" />').
+            attr('id', fieldValueId + '-key').
+            attr('placeholder', this.tr('Property name')));
+        var addBtn = $('<button></button>').
             addClass('field-add').
             addClass('property-add').
             attr('data-field-id', fieldValueId).
-            attr('data-object-namespace', namespace);
+            attr('data-object-namespace', namespace).
+            text(this.tr('Add'));
         this.renderEditBarContent(propertyTypes, fieldValueId, inner, addBtn);
         inner.append(' ').append(addBtn);
         editBar.append(inner);
@@ -360,10 +363,11 @@ onde.Onde.prototype.renderEnumField = function (fieldName, fieldInfo, valueData)
                 fieldValueNode.append(optN);
             }
         } else {
-            fieldValueNode = $('<input type="text" readonly="readonly" />').
+            fieldValueNode = $('<input type="text" />').
                 attr('id', 'fieldvalue-' + fieldBaseId).
                 attr('name', fieldName).
-                attr('value', fieldInfo.enum[0]);
+                attr('value', fieldInfo.enum[0]).
+                attr('readonly', 'readonly');
         }
     }
     return fieldValueNode;
@@ -638,13 +642,14 @@ onde.Onde.prototype.renderFieldValue = function (fieldName, fieldInfo, parentNod
             addClass('edit-bar').
             addClass('array');
         var inner = $('<small></small>');
-        inner.append('Add item: ');
-        var addBtn = $('<button>Add</button>').
+        inner.append(this.tr("Add item: "));
+        var addBtn = $('<button></button>').
             addClass('field-add').
             addClass('item-add').
             attr('data-field-id', fieldValueId).
             attr('data-object-namespace', fieldName).
-            attr('data-last-index', lastIndex);
+            attr('data-last-index', lastIndex).
+            text(this.tr("Add"));
         this.renderEditBarContent(itemTypes, fieldValueId, inner, addBtn);
         inner.append(' ').append(addBtn);
         editBar.append(inner);
@@ -1067,6 +1072,7 @@ onde.Onde.prototype._buildProperty = function (propName, propInfo, path, formDat
     if (result.errorCount > 0) {
         // This field has one or more error
         $('#' + fieldId).addClass('error');
+        //TODO: Print the errors (insert them into the description)
     }
     return result;
 };
