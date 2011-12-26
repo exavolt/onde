@@ -1,7 +1,8 @@
 {
     "type": "object",
     "name": "jQuery Plugins Site package.json",
-    "description": "Package manifest file for jQuery plugins.",
+    "description": "Package manifest file for jQuery plugins. https://github.com/jquery/plugins.jquery.com/blob/master/docs/package.md",
+    "primaryProperty": "name",
     "properties": {
         "name": {
             "type": "string",
@@ -25,7 +26,7 @@
             "properties": {
                 "name": { "type": "string", "required": true },
                 "email": { "type": "string" },
-                "web": { "type": "string" }
+                "url": { "type": "string" }
                 } 
             },
         "licenses": {
@@ -67,11 +68,12 @@
                 "properties": {
                     "name": { "type": "string", "required": true },
                     "email": { "type": "string" },
-                    "web": { "type": "string" }
+                    "url": { "type": "string" }
                     } 
                 }
             },
         "files": {
+            "description": "List of files that make up your plugin. This should be a file path relative to the root of your plugin folder.",
             "type": "array",
             "items": { "type": "string", "format": "url.path" }
             }

@@ -1,0 +1,62 @@
+{
+    "type": "object",
+    "name": "Python disutils",
+    "description": "As the input for distutils.core.setup() http://docs.python.org/distutils/apiref.html",
+    "properties": {
+        "name": {
+            "description": "The name of the package",
+            "type": "string"
+            },
+        "version": {
+            "description": "The version number of the package; see distutils.version",
+            "type": "string"
+            },
+        "description": {
+            "description": "A single line describing the package",
+            "type": "string"
+            },
+        "long_description": {
+            "description": "Longer description of the package",
+            "type": "string"
+            },
+        "author": {
+            "description": "The name of the package author",
+            "type": "string"
+            },
+        "author_email": {
+            "description": "The email address of the package author",
+            "type": "string"
+            },
+        "maintainer": {
+            "description": "The name of the current maintainer, if different from the author",
+            "type": "string"
+            },
+        "maintainer_email": {
+            "description": "The email address of the current maintainer, if different from the author",
+            "type": "string"
+            },
+        "url": {
+            "description": "A URL for the package (homepage)",
+            "type": "string"
+            },
+        "download_url": {
+            "description": "A URL to download the package",
+            "type": "string"
+            },
+        "packages": {
+            "description": "A list of Python packages that distutils will manipulate",
+            "type": "array",
+            "items": "string"
+            },
+        "py_modules": {
+            "description": "A list of Python modules that distutils will manipulate",
+            "type": "array",
+            "items": "string"
+            },
+        "scripts": {
+            "description": "A list of standalone script files to be built and installed",
+            "type": "array",
+            "items": "string"
+            }
+        }
+    }
