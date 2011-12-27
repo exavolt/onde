@@ -71,6 +71,10 @@ h1 {
     background-color: #666;
     color: #fff;
 }
+.topbar .plusone {
+    float: right;
+    padding: 8px;
+}
 
 #site {
     padding: 48px 8px 0;
