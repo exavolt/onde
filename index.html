@@ -1,25 +1,33 @@
 <!DOCTYPE html>
-<html>
+<html itemscope itemtype="http://schema.org/CreativeWork">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/> 
     <title>JSON Editor</title>
+    <meta itemprop="name" content="Schema-based JSON Editor">
+    <meta itemprop="description" content="A web-based JSON editor which utilizes JSON Schema to generate the form for the input and to validate it and to generate the JSON output.">
     <link rel="stylesheet" href="assets/normalize.css" type="text/css"/>
     <link rel="stylesheet" href="src/onde.css" type="text/css"/>
     <link rel="stylesheet" href="assets/app.css" type="text/css"/>
     <!--link rel="stylesheet" href="assets/codemirror/codemirror.css">
     <link rel="stylesheet" href="assets/codemirror/default.css"-->
 <script type="text/javascript">
-
+  // GA
   var _gaq = _gaq || [];
   _gaq.push(['_setAccount', 'UA-27954902-1']);
   _gaq.push(['_trackPageview']);
-
   (function() {
     var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
     ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
     var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
   })();
-
+</script>
+<script type="text/javascript">
+  // +1
+  (function() {
+    var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true;
+    po.src = 'https://apis.google.com/js/plusone.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
+  })();
 </script>
   </head>
   <body>
@@ -34,6 +42,7 @@
         <li><a href="#schema-editor" id="schema-editor-control">Edit Schema</a></li>
         <li><a href="#about" class="site-about-control">About</a></li>
       </ul>
+      <span><g:plusone size="medium"></g:plusone></span>
     </div>
   </div>
 </div>
