@@ -6,52 +6,6 @@
  *   Use jQuery.fn.text and jQuery.fn.attr rather than string concatenation where possible.
  */
 
-//BUG: Required object and array
-//BUG: Nameless schema
-//BUG: String default
-//BUG: Handling bad schema for object
-//BUG: Root object with 'additionalProperties' won't be shown with editor
-//TODO: More consistent IDs
-// Fix the mess: field value id and field id
-//TODO: Type could be array (!) i.e., union
-//TODO: Check if the property name already exist
-//TODO: Remove the limitations for property name (support all kind of characters)
-//TODO: Deal with 'any' (more consistenly)
-//TODO: Boolean value consistency
-//TODO: Warning if the data doesn't conform the schema
-//TODO: Add 'custom' class to additional properties and list items
-//TODO: Can't just use 'object' and 'array' as type option. Must specify which definition.
-//TODO: Support empty (null?) array item
-//TODO: Nicer error reporting (for both rendering and data collecting)
-//TODO: More treatments to multiline string
-//TODO: Smart multiline (textarea) based on the format (and explicit schema property)
-//TODO: Initially show the edit bars as semi transparent and make it opaque on hover
-//TODO: Options: submit URL, delete URL, ...
-//TODO: More than one level summary
-//TODO: Rich element class for items / properties: first and last, even and odd
-//TODO: Support for measurement format (i.e.: value - unit compound)
-//TODO: Support for combo requirement (e.g.: length + width + height or height + diameter)
-//TODO: Support for compound (a field consisted of smaller fields).
-// For example measurement field consisted of value field and unit field.
-//TODO: Support for more solid compound: URL or href is defined as field but could be break up to parts.
-//TODO: Allow to replace wordings (e.g.: "Add property" to "Add person") Use schema's name?
-//TODO: Use description as fallback of title (element's title should be only taken from title)
-//TODO: Should support something like: { "type": "object", "properties": { "name": "string" } }. 
-// With `name` value is string with all default properties.
-//TODO: Required: any (any field), combo (set of combination)
-//TODO: Automatically add first array item if the item type is singular
-//TODO: (non-)Exclusive enum (use combobox or plain input with autocomplete)
-//TODO: Display character counter for string field if the length is constrained
-//TODO: Descriptive enum value. e.g., { "value": "the-real-value", "label": "Displayed text" }
-//TODO: Option: collapsed on load (interactively added items are always expanded)
-// Collapse array / object panel if the data is empty and not required
-// Collapse array / object panel if it's more than defined depth
-//TODO: Option: remove property if the value is empty (empty object / empty array)
-//TODO: Cascading options (constructor and render)
-//TODO: Array with single primitive type, display the edit bar as input box
-//TOTHINK: Boolean field as dropdown with 3 options (' ', 'true'/'yes', 'false'/'no') for non-required
-// and 2 options ('true'/'yes', 'false'/'no') for required
-
 
 /*FIXME: Monkey-patching is not recommended */
 
@@ -1216,11 +1170,12 @@ onde.Onde.prototype.getData = function () {
     if (formData.next) {
         delete formData.next;
     }
-    this.formElement.find('.onde-panel').find('.error').removeClass('error');
+    this.formElement.find('.onde-panel .error').removeClass('error');
     return this._buildObject(this.documentSchema, this.instanceId, formData);
 };
 
 
 onde.Onde.prototype.tr = function (text) {
+    // Translations go here
     return text;
 };
