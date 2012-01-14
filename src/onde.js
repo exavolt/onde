@@ -1,53 +1,10 @@
 ; // Don't remove this lonely semi-colon
 
 /* NOTES:
- * Use jQuery.fn.text and jQuery.fn.attr rather than string concatenation where possible.
+ * 
+ * - Don't forget to escape.
+ *   Use jQuery.fn.text and jQuery.fn.attr rather than string concatenation where possible.
  */
-
-//BUG: Required object and array
-//BUG: Nameless schema
-//BUG: String default
-//BUG: Handling bad schema for object
-//BUG: Root object with 'additionalProperties' won't be shown with editor
-//TODO: More consistent IDs
-// Fix the mess: field value id and field id
-//TODO: Type could be array (!) i.e., union
-//TODO: Check if the property name already exist
-//TODO: Remove the limitations for property name (support all kind of characters)
-//TODO: Deal with 'any' (more consistenly)
-//TODO: Boolean value consistency
-//TODO: Warning if the data doesn't conform the schema
-//TODO: Add 'custom' class to additional properties and list items
-//TODO: Can't just use 'object' and 'array' as type option. Must specify which definition.
-//TODO: Support empty (null?) array item
-//TODO: Nicer error reporting (for both rendering and data collecting)
-//TODO: More treatments to multiline string
-//TODO: Smart multiline (textarea) based on the format (and explicit schema property)
-//TODO: Initially show the edit bars as semi transparent and make it opaque on hover
-//TODO: Options: submit URL, delete URL, ...
-//TODO: More than one level summary
-//TODO: Rich element class for items / properties: first and last, even and odd
-//TODO: Support for measurement format (i.e.: value - unit compound)
-//TODO: Support for combo requirement (e.g.: length + width + height or height + diameter)
-//TODO: Support for compound (a field consisted of smaller fields).
-// For example measurement field consisted of value field and unit field.
-//TODO: Support for more solid compound: URL or href is defined as field but could be break up to parts.
-//TODO: Allow to replace wordings (e.g.: "Add property" to "Add person") Use schema's name?
-//TODO: Use description as fallback of title (element's title should be only taken from title)
-//TODO: Should support something like: { "type": "object", "properties": { "name": "string" } }. With `name` value is string with all default properties.
-//TODO: Required: any (any field), combo (set of combination)
-//TODO: Automatically add first array item if the item type is singular
-//TODO: (non-)Exclusive enum (use combobox or plain input with autocomplete)
-//TODO: Display character counter for string field if the length is constrained
-//TODO: Descriptive enum value. e.g., { "value": "the-real-value", "label": "Displayed text" }
-//TODO: Option: collapsed on load (interactively added items are always expanded)
-// Collapse array / object panel if the data is empty and not required
-// Collapse array / object panel if it's more than defined depth
-//TODO: Option: remove property if the value is empty (empty object / empty array)
-//TODO: Cascading options (constructor and render)
-//TODO: Array with single primitive type, display the edit bar as input box
-//TOTHINK: Boolean field as dropdown with 3 options (' ', 'true'/'yes', 'false'/'no') for non-required
-// and 2 options ('true'/'yes', 'false'/'no') for required
 
 
 /*FIXME: Monkey-patching is not recommended */
@@ -93,13 +50,6 @@ if (!String.prototype.endsWith) {
         return this.indexOf(suffix, this.length - suffix.length) !== -1;
     };
 }
-
-(function($){
-    $.htmlEscape = function(text) {
-        return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').
-            replace(/>/g, '&gt;').replace(/\"/g, '&quot;');
-    };
-})(jQuery);
 
 
 var onde = (function () {
@@ -184,7 +134,8 @@ onde.Onde.prototype.render = function (schema, data, opts) {
     this.panelElement.empty();
     this.instanceId = this._generateFieldId();
     this.initialRendering = true;
-    this.renderObject(this.documentSchema, this.panelElement, this.instanceId, this.documentInstance);
+    this.renderObject(this.documentSchema, this.panelElement, this.instanceId, 
+        this.documentInstance);
     this.initialRendering = false;
     if (opts.renderFinished) {
         opts.renderFinished(this.panelElement);
@@ -339,7 +290,8 @@ onde.Onde.prototype.renderEnumField = function (fieldName, fieldInfo, valueData)
     }
     // If there's no data provided, or the data is not valid, 
     // try to get selected value from the default.
-    if (!hasSelected && typeof fieldInfo['default'] === fieldInfo.type && fieldInfo.enum.indexOf(fieldInfo['default']) >= 0) {
+    if (!hasSelected && typeof fieldInfo['default'] === fieldInfo.type && 
+      fieldInfo.enum.indexOf(fieldInfo['default']) >= 0) {
         selectedValue = fieldInfo['default'];
         hasSelected = true;
     }
@@ -480,7 +432,10 @@ onde.Onde.prototype.renderFieldValue = function (fieldName, fieldInfo, parentNod
     //TODO: Schema ref
     var fieldValueId = 'fieldvalue-' + this._fieldNameToID(fieldName);
     if ('$ref' in fieldInfo) {
-        console.log(filedInfo);
+        console.log(fieldInfo);
+        if (valueData) {
+            console.log(valueData);
+        }
     }
     fieldInfo = this._sanitizeFieldInfo(fieldInfo, valueData);
     var fieldDesc = fieldInfo ? fieldInfo.description || fieldInfo.title : null;
@@ -529,6 +484,9 @@ onde.Onde.prototype.renderFieldValue = function (fieldName, fieldInfo, parentNod
             }*/
         }
         fieldValueNode.attr('data-type', fieldInfo.type);
+        /*if (fieldInfo.required) {
+            fieldValueNode.attr('required', 'required');
+        }*/
         if (fieldInfo.readonly) {
             fieldValueNode.attr('readonly', 'readonly');
         }
@@ -585,7 +543,8 @@ onde.Onde.prototype.renderFieldValue = function (fieldName, fieldInfo, parentNod
             attr('id', fieldValueId).
             attr('name', fieldName).
             addClass('value-input');
-        if (valueData === true || valueData === 'true' || valueData === 1 || valueData === '1') {
+        if (valueData === 'on' || valueData === 'true' || valueData === 'checked' || 
+          valueData === '1' || valueData === 1 || valueData === true) {
             fieldValueNode.attr('checked', 'checked');
         }
         if (fieldInfo.title) {
@@ -610,6 +569,26 @@ onde.Onde.prototype.renderFieldValue = function (fieldName, fieldInfo, parentNod
     } else if (fieldInfo.type == 'array') {
         //TODO:FIXME:HACK:TEMP: Dummy array item (should make the renderer understands different kind of fieldInfo types)
         var itemSchema = { "type": "any" };
+        var itemTypes = [];
+        // Gather the types available to items
+        if ('items' in fieldInfo) {
+            if (typeof fieldInfo.items == 'string') {
+                //TODO: Validate the value
+                itemTypes = [fieldInfo.items];
+                itemSchema = { "type": fieldInfo.items };
+            } else if (typeof fieldInfo.items == 'object') {
+                if (fieldInfo.items instanceof Array) {
+                    itemTypes = fieldInfo.items;
+                    //TODO
+                    console.warn("Array with multiple types of item is currently not supported");
+                } else {
+                    itemTypes = [fieldInfo.items];
+                    itemSchema = fieldInfo.items;
+                }
+            } else {
+                console.warn("Invalid items type: " + (typeof fieldInfo.items) + " (" + fieldName + ")");
+            }
+        }
         var contN = $('<ol start="0"></ol>').
             attr('id', fieldValueId).
             attr('data-type', 'array');
@@ -617,7 +596,8 @@ onde.Onde.prototype.renderFieldValue = function (fieldName, fieldInfo, parentNod
         if (valueData) {
             for (var idat = 0; idat < valueData.length; idat++) {
                 lastIndex++;
-                var chRowN = this.renderListItemField(fieldName, itemSchema, lastIndex, valueData[idat]);
+                var chRowN = this.renderListItemField(fieldName, itemSchema, 
+                    lastIndex, valueData[idat]);
                 if (idat == 0) {
                     chRowN.addClass('first');
                 }
@@ -628,22 +608,6 @@ onde.Onde.prototype.renderFieldValue = function (fieldName, fieldInfo, parentNod
             }
         }
         parentNode.append(contN);
-        var itemTypes = [];
-        // Gather the types available to items
-        if ('items' in fieldInfo) {
-            if (typeof fieldInfo.items == 'string') {
-                //TODO: Validate the value
-                itemTypes = [fieldInfo.items];
-            } else if (typeof fieldInfo.items == 'object') {
-                if (fieldInfo.items instanceof Array) {
-                    itemTypes = fieldInfo.items;
-                } else {
-                    itemTypes = [fieldInfo.items];
-                }
-            } else {
-                console.warn("Invalid items type: " + (typeof fieldInfo.items) + " (" + fieldName + ")");
-            }
-        }
         var editBar = $('<div></div>').
             attr('id', fieldValueId + '-edit-bar').
             addClass('edit-bar').
@@ -663,7 +627,9 @@ onde.Onde.prototype.renderFieldValue = function (fieldName, fieldInfo, parentNod
         parentNode.append(editBar);
         return;
     } else {
-        var valueContainer = $('<span class="value">InternalError: Unsupported property type: <tt>' + $.htmlEscape(fieldInfo.type) + '</tt></span>');
+        var valueContainer = $('<span></span>').addClass('value').
+            append(this.tr("InternalError: Unsupported property type: ")).
+            append($('<tt></tt>').text(fieldInfo.type));
         parentNode.append(valueContainer);
     }
 };
@@ -743,7 +709,10 @@ onde.Onde.prototype.renderObjectPropertyField = function (namespace, baseId, fie
     }
     if (fieldInfo.required || rowN.hasClass('primary')) {
         // Required field
-        labelN.append($('<span></span>').addClass('required-marker').attr('title', this.tr("Required field")).text('*'));
+        labelN.append($('<span></span>').
+            addClass('required-marker').
+            attr('title', this.tr("Required field")).
+            text('*'));
     }
     labelN.append(': ');
     var actionMenu = '';
@@ -1018,7 +987,8 @@ onde.Onde.prototype._buildProperty = function (propName, propInfo, path, formDat
         var lsErrCount = 0;
         var lsErrData = [];
         for (var iidx = 0; iidx < itemIndices.length; ++iidx) {
-            var cRes = this._buildProperty(propName + '[' + itemIndices[iidx] + ']', propInfo ? propInfo.items : null, path, formData);
+            var cRes = this._buildProperty(propName + '[' + itemIndices[iidx] + ']', 
+                propInfo ? propInfo.items : null, path, formData);
             lsData.push(cRes.data);
             if (cRes.errorCount) {
                 lsErrCount += cRes.errorCount;
@@ -1043,7 +1013,9 @@ onde.Onde.prototype._buildProperty = function (propName, propInfo, path, formDat
         }
         if (dataType == 'boolean') {
             //NOTE: This makes boolean property always present
-            result.data = (valData === 'on' || valData === 'true' || valData === 'checked' || valData === 1 || valData === true);
+            result.data = (valData === 'on' || 
+                valData === 'true' || valData === 'checked' || 
+                valData === '1' || valData === 1 || valData === true);
             result.noData = false;
         } else if (valData) {
             result.noData = false;
@@ -1126,7 +1098,8 @@ onde.Onde.prototype._buildObject = function (schema, path, formData) {
                 if (dataType === 'object') {
                     var bPropName = propName.split(this.fieldNamespaceSeparator, 1)[0];
                     if (!(bPropName in result.data)) {
-                        var cRes = this._buildProperty(bPropName, { type: 'object', additionalProperties: true }, path, formData);
+                        var cRes = this._buildProperty(bPropName, 
+                            { type: 'object', additionalProperties: true }, path, formData);
                         if (!cRes.noData) {
                             result.data[bPropName] = cRes.data;
                         }
@@ -1167,7 +1140,9 @@ onde.Onde.prototype._buildObject = function (schema, path, formData) {
                             result.data[propName] = dVal;
                         }
                     } else if (dataType == 'boolean') {
-                        result.data[propName] = (valData === 'on' || valData === 'true' || valData === 'checked' || valData === 1 || valData === true);
+                        result.data[propName] = (valData === 'on' || 
+                            valData === 'true' || valData === 'checked' || 
+                            valData === '1' || valData === 1 || valData === true);
                     } else if (dataType == 'string') {
                         result.data[propName] = valData;
                     } else {
@@ -1205,11 +1180,12 @@ onde.Onde.prototype.getData = function () {
     if (formData.next) {
         delete formData.next;
     }
-    this.formElement.find('.onde-panel').find('.error').removeClass('error');
+    this.formElement.find('.onde-panel .error').removeClass('error');
     return this._buildObject(this.documentSchema, this.instanceId, formData);
 };
 
 
 onde.Onde.prototype.tr = function (text) {
+    // Translations go here
     return text;
 };
