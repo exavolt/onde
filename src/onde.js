@@ -432,7 +432,10 @@ onde.Onde.prototype.renderFieldValue = function (fieldName, fieldInfo, parentNod
     //TODO: Schema ref
     var fieldValueId = 'fieldvalue-' + this._fieldNameToID(fieldName);
     if ('$ref' in fieldInfo) {
-        console.log(filedInfo);
+        console.log(fieldInfo);
+        if (valueData) {
+            console.log(valueData);
+        }
     }
     fieldInfo = this._sanitizeFieldInfo(fieldInfo, valueData);
     var fieldDesc = fieldInfo ? fieldInfo.description || fieldInfo.title : null;
@@ -566,6 +569,26 @@ onde.Onde.prototype.renderFieldValue = function (fieldName, fieldInfo, parentNod
     } else if (fieldInfo.type == 'array') {
         //TODO:FIXME:HACK:TEMP: Dummy array item (should make the renderer understands different kind of fieldInfo types)
         var itemSchema = { "type": "any" };
+        var itemTypes = [];
+        // Gather the types available to items
+        if ('items' in fieldInfo) {
+            if (typeof fieldInfo.items == 'string') {
+                //TODO: Validate the value
+                itemTypes = [fieldInfo.items];
+                itemSchema = { "type": fieldInfo.items };
+            } else if (typeof fieldInfo.items == 'object') {
+                if (fieldInfo.items instanceof Array) {
+                    itemTypes = fieldInfo.items;
+                    //TODO
+                    console.warn("Array with multiple types of item is currently not supported");
+                } else {
+                    itemTypes = [fieldInfo.items];
+                    itemSchema = fieldInfo.items;
+                }
+            } else {
+                console.warn("Invalid items type: " + (typeof fieldInfo.items) + " (" + fieldName + ")");
+            }
+        }
         var contN = $('<ol start="0"></ol>').
             attr('id', fieldValueId).
             attr('data-type', 'array');
@@ -585,22 +608,6 @@ onde.Onde.prototype.renderFieldValue = function (fieldName, fieldInfo, parentNod
             }
         }
         parentNode.append(contN);
-        var itemTypes = [];
-        // Gather the types available to items
-        if ('items' in fieldInfo) {
-            if (typeof fieldInfo.items == 'string') {
-                //TODO: Validate the value
-                itemTypes = [fieldInfo.items];
-            } else if (typeof fieldInfo.items == 'object') {
-                if (fieldInfo.items instanceof Array) {
-                    itemTypes = fieldInfo.items;
-                } else {
-                    itemTypes = [fieldInfo.items];
-                }
-            } else {
-                console.warn("Invalid items type: " + (typeof fieldInfo.items) + " (" + fieldName + ")");
-            }
-        }
         var editBar = $('<div></div>').
             attr('id', fieldValueId + '-edit-bar').
             addClass('edit-bar').

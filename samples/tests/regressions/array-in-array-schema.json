@@ -1,0 +1,21 @@
+{
+    "description":"A schema",
+    "properties":{
+        "methods":{
+            "type":"array",
+            "description":"1st level array",
+            "items":{
+                "type":"object",
+                "description":"The definition",
+                "properties":{
+                    "parameters":{
+                        "type":"array",
+                        "description":"2nd level array",
+                        "items":"string",
+                        "required": true
+                        }
+                    }
+                }
+            }
+        }
+    }

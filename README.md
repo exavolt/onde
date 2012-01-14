@@ -23,7 +23,8 @@ Limitations
 Quick Start
 -----------
 
-- Open the file `samples/app.html` in a web browser (Firefox or Safari, won't work with Chrome).
+- Open the file `samples/app.html` in a web browser (Firefox or Safari, 
+  won't work with Chrome locally due its strict cross-origin policy).
 - Click the "Load Schema" menu item.
 - Enter `schemas/test.json` into the "Schema URL" field.
 - Push the "Load" button.
