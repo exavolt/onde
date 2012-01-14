@@ -481,6 +481,9 @@ onde.Onde.prototype.renderFieldValue = function (fieldName, fieldInfo, parentNod
             }*/
         }
         fieldValueNode.attr('data-type', fieldInfo.type);
+        /*if (fieldInfo.required) {
+            fieldValueNode.attr('required', 'required');
+        }*/
         if (fieldInfo.readonly) {
             fieldValueNode.attr('readonly', 'readonly');
         }
@@ -537,8 +540,8 @@ onde.Onde.prototype.renderFieldValue = function (fieldName, fieldInfo, parentNod
             attr('id', fieldValueId).
             attr('name', fieldName).
             addClass('value-input');
-        if (valData === 'on' || valData === 'true' || valData === 'checked' || 
-          valData === '1' || valData === 1 || valData === true) {
+        if (valueData === 'on' || valueData === 'true' || valueData === 'checked' || 
+          valueData === '1' || valueData === 1 || valueData === true) {
             fieldValueNode.attr('checked', 'checked');
         }
         if (fieldInfo.title) {
