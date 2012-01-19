@@ -1040,8 +1040,14 @@ onde.Onde.prototype._buildProperty = function (propName, propInfo, path, formDat
             }
         } else {
             if (propInfo && propInfo.required) {
-                result.errorCount += 1;
-                result.errorData = 'value-required';
+                if (typeof propInfo['default'] != 'undefined') {
+                    //TODO: Check the value (the flag below is fake)
+                    result.noData = false;
+                    result.data = propInfo['default'];
+                } else {
+                    result.errorCount += 1;
+                    result.errorData = 'value-required';
+                }
             }
             if (!propInfo) {
                 console.log(fieldName);
@@ -1171,7 +1177,7 @@ onde.Onde.prototype._buildObject = function (schema, path, formData) {
     return result;
 };
 
-onde.Onde.prototype.getData = function () {
+onde.Onde.prototype.getData = function (opts) {
     var formData = {};
     var fields = this.formElement.serializeArray();
     for (var i = 0; i < fields.length; i++) {
