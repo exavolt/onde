@@ -221,7 +221,7 @@ onde.Onde.prototype.renderObject = function (schema, parentNode, namespace, data
                     baseNode.append(rowN);
                 }
             }
-        } else if (typeof schema.additionalProperties == "object") {
+        } else if (Object.prototype.toString.call(schema.additionalProperties) == '[object Object]') {
             for(var dKey in data) {
                 if(sortedKeys.indexOf(dKey) === -1) {
                     rowN = this.renderObjectPropertyField(namespace, fieldId,
