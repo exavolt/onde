@@ -205,8 +205,8 @@ onde.Onde.prototype.renderObject = function (schema, parentNode, namespace, data
     if (schema.additionalProperties) {
         //NOTE: additionalProperties could have 4 types of value: boolean, 
         // string (the name of the type), object (type info), array of types.
+        var firstItem = rowN ? false : true;
         if (schema.additionalProperties === true) {
-            var firstItem = rowN ? false : true;
             for (var dKey in data) {
                 //NOTE: No need to check the types. Will be done by the inner renderers.
                 // Take only additional items
@@ -221,8 +221,21 @@ onde.Onde.prototype.renderObject = function (schema, parentNode, namespace, data
                     baseNode.append(rowN);
                 }
             }
+        } else if (typeof schema.additionalProperties == "object") {
+            for(var dKey in data) {
+                if(sortedKeys.indexOf(dKey) === -1) {
+                    rowN = this.renderObjectPropertyField(namespace, fieldId,
+                        schema.additionalProperties,
+                        dKey, data[dKey]);
+                }
+            }
+            if (firstItem) {
+                rowN.addClass('first');
+                firstItem = false;
+            }
+            baseNode.append(rowN);
         } else {
-            //TODO: Get the schema
+            //TODO: handle other additionalProperty values
         }
     }
     // Always the last if the object has any property
