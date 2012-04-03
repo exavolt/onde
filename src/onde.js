@@ -201,6 +201,7 @@ onde.Onde.prototype.renderObject = function (schema, parentNode, namespace, data
             schema.additionalProperties = true;
         }
     }
+    var showEditBar = false;
     // Now check if the object has additional properties
     if (schema.additionalProperties) {
         //NOTE: additionalProperties could have 4 types of value: boolean, 
@@ -221,6 +222,7 @@ onde.Onde.prototype.renderObject = function (schema, parentNode, namespace, data
                     baseNode.append(rowN);
                 }
             }
+            showEditBar = true;
         } else if (Object.prototype.toString.call(schema.additionalProperties) == '[object Object]') {
             for(var dKey in data) {
                 if(sortedKeys.indexOf(dKey) === -1) {
@@ -234,6 +236,7 @@ onde.Onde.prototype.renderObject = function (schema, parentNode, namespace, data
                 firstItem = false;
             }
             baseNode.append(rowN);
+            showEditBar = true;
         } else {
             //TODO: handle other additionalProperty values
         }
@@ -261,8 +264,8 @@ onde.Onde.prototype.renderObject = function (schema, parentNode, namespace, data
             console.warn("Invalid additional properties type: " + (typeof schema.additionalProperties) + ".");
         }
     }
-    // Toolbar if the object can has additional property
-    if ('additionalProperties' in schema) {
+    // Toolbar if needed
+    if (showEditBar) {
         var editBar = $('<div></div>').
             attr('id', fieldValueId + '-edit-bar').
             addClass('edit-bar').
